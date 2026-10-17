@@ -91,3 +91,36 @@
   - Code hygiene: `ruff` and `mypy` clean across all 13 source files.
 - **What is pending**:
   - Phase 5: Dashboard (Vite + React + TypeScript matching `docs/DESIGN.md` strictly).
+
+---
+
+### 2026-10-17: Phase 5 - Dashboard Completed
+- **What was done**:
+  - Initialized and configured Vite + React 18 + TypeScript SPA under `dashboard/`.
+  - Implemented design system in `dashboard/src/index.css` strictly adhering to `docs/DESIGN.md`:
+    - Industrial control room palette (`steel-900`, `concrete-100`, `concrete-50`, `signal-blue`, `hazard-orange`, `caution-amber`, `clear-green`).
+    - Typography rules (Barlow Condensed headings, IBM Plex Sans body, tabular numerals).
+    - Accessibility tokens (high-contrast ratios, focus rings, reduced motion support).
+  - Implemented modular component library:
+    - `HealthBar`: Universal header displaying brand, camera ID, PipeGen engine precision badge (INT8/FP16), FPS/latency, health status pill, camera lost warning banner, and "Present" mode toggle.
+    - `IncidentFeed`: ARIA live region stream with formatted names ("No helmet", "Zone entry", "Danger-zone dwell"), severity badges with icons, relative timestamps, blurred clip indicators, and active selection states.
+    - `VideoPlayerWithZones`: Live video viewport with SVG zone overlay layer; safe/restricted/danger polygons; dynamic outline color change to hazard-orange with 4px stroke on active violations; live privacy watermark.
+    - `ZoneEditor`: Interactive polygon drawing canvas over camera snapshot frame; click-to-plot vertices, undo point, zone ID and type configuration, required PPE toggles, atomic `PUT /api/zones` updates, and "Zone saved" toast feedback.
+    - `IncidentDetailModal`: Modal with blurred MP4 evidence playback, timeline/duration facts, officer acknowledgement with optional comment, and timestamped audit note thread.
+    - `ReportsView`: Overall site compliance percentage card, zone breakdown, violation type share, hourly distribution bar chart, and CSV export action.
+    - `SystemView`: Live hardware telemetry facts (FPS, latency, GPU power & utilization), PipeGen zero-copy pipeline callout, and Jetson Orin FP32 vs FP16 vs INT8 comparison table.
+    - `TodayByZoneAndHourly`: Live view lower-deck cards for zone distribution and hourly trends.
+    - `App`: State coordinator with auto-reconnecting WebSocket (`/ws/live`), REST API polling fallback, and present-mode judge view.
+  - Implemented component test suite using Vitest and React Testing Library:
+    - `src/test/HealthBar.test.tsx`: System state, engine precision, camera lost banner, navigation, present mode.
+    - `src/test/IncidentFeed.test.tsx`: Design copy formatting, empty state, row rendering, selection.
+    - `src/test/ZoneEditor.test.tsx`: Zone list rendering, drawing mode switch.
+    - `src/test/VideoPlayerWithZones.test.tsx`: Color calculations, SVG rendering, zone toggle.
+- **What is verified**:
+  - Vitest: 11 passed tests across 4 test suites in `dashboard/`.
+  - Production build: `npm --prefix dashboard run build` succeeds with zero TypeScript errors.
+  - Full project test suite: `make test` runs 47 Python tests + 11 Dashboard tests (58 total passed).
+  - Code hygiene: `make lint` clean across all backend files; frontend 100% type-checked.
+- **What is pending**:
+  - Phase 6: Evaluation harness (`tools/label_clip.py`, `eval/evaluate.py`, precision/recall/F1/latency matcher, threshold sweeps).
+

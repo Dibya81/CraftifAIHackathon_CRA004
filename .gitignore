@@ -13,4 +13,4 @@ logs/*
 .env
 .coverage
 .coverage.*
-
+dashboard/dist/

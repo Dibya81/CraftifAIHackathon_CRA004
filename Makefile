@@ -22,6 +22,13 @@ format:
 
 test:
 	$(PYTEST) -v --durations=10
+	npm --prefix dashboard test
+
+test-dashboard:
+	npm --prefix dashboard test
+
+build-dashboard:
+	npm --prefix dashboard run build
 
 sim:
 	$(PYTHON) tools/simulate.py --scenario compliant --fps 25

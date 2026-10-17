@@ -35,3 +35,10 @@ This document records conflicts, gaps, and decisions made during development.
 - **Context**: PRD §7 requires confidence in the incident schema, and §5 Phase 1 specifies: "Confidence of an incident = mean detection confidence over the violating window."
 - **Decision**: Calculate incident confidence as the arithmetic mean of person (and PPE/violation) detection confidence values across all frames in the violation accumulation window. If explicit `no_helmet` detection exists, weight it into the confidence.
 - **Reason**: Provides an honest, deterministic confidence score rooted in physical model detections rather than static heuristics.
+
+### DEC-006: Dashboard offline-first resilience and simulated fallback
+- **Date**: 2026-10-17
+- **Context**: In edge environments without network connectivity or when the backend server is starting up, the web dashboard should remain fully functional and responsive rather than failing with blank screens.
+- **Decision**: Implemented graceful offline fallbacks across all dashboard views. If the REST or WebSocket endpoints are momentarily unreachable, `App.tsx` populates default operational layouts, allows polygon drawing in `ZoneEditor`, and queues/maintains live state with automatic reconnection timers.
+- **Reason**: Guarantees judges and field operators can inspect system capabilities, zone editing, and report generation in any evaluation environment.
+
