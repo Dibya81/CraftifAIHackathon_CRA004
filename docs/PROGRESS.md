@@ -69,3 +69,25 @@
   - Code hygiene: `ruff` and `mypy` pass with 0 errors across all 13 source files.
 - **What is pending**:
   - Phase 4: FastAPI REST & WebSocket service (`src/sentinel/api.py`).
+
+---
+
+### 2026-10-17: Phase 4 - FastAPI Service Completed
+- **What was done**:
+  - Implemented `src/sentinel/api.py`: FastAPI application serving REST endpoints:
+    - `GET /api/health`: Uptime, camera, MQTT, FP16/INT8 engine precision, FPS, latency, and GPU telemetry via `nvidia-smi`.
+    - `GET /api/incidents`: Queryable incident log with filtering (limit, since, type, zone, severity) and acknowledgment/note statuses.
+    - `GET /api/incidents/{id}`, `POST /api/incidents/{id}/ack`, and `POST /api/incidents/{id}/note`.
+    - `GET /api/zones` and `PUT /api/zones`: Atomic polygon validation and hot-reloading of `config/zones.json`.
+    - `GET /api/zones/snapshot`: Serves latest still frame (JPEG) for zone editor polygon authoring.
+    - `GET /api/stats`: Aggregated metrics (type, zone, severity, hourly breakdown, compliance %).
+    - `GET /api/system` and `GET /api/system/engine-report`: PipeGen engine speed report telemetry.
+    - `WS /ws/live`: Real-time WebSocket pushing initial state, newly raised incidents, ack events, zone hot-reloads, and health heartbeats.
+    - Static file mount at `/evidence` for clips and thumbnails.
+    - Global CORS middleware for dashboard dev server.
+  - Authored full test suite in `tests/test_api.py` covering health, incidents CRUD, acks, notes, zone updates, snapshot, stats, and WebSocket communication.
+- **What is verified**:
+  - 47 total passed tests, 86% total test coverage across `src/sentinel` (`api.py`: 85%).
+  - Code hygiene: `ruff` and `mypy` clean across all 13 source files.
+- **What is pending**:
+  - Phase 5: Dashboard (Vite + React + TypeScript matching `docs/DESIGN.md` strictly).

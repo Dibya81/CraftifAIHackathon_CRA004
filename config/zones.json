@@ -1,23 +1,11 @@
 {
   "frame": {"width": 1920, "height": 1080},
   "zones": [
-    {
-      "id": "walkway",
-      "type": "safe",
-      "required_ppe": ["helmet"],
-      "polygon": [[100, 600], [900, 600], [900, 1000], [100, 1000]]
-    },
-    {
-      "id": "press-area",
-      "type": "restricted",
-      "required_ppe": ["helmet", "vest"],
-      "polygon": [[1000, 300], [1700, 300], [1700, 900], [1000, 900]]
-    },
-    {
-      "id": "crane-drop",
-      "type": "danger",
-      "required_ppe": ["helmet", "vest"],
-      "polygon": [[1200, 100], [1500, 100], [1500, 300], [1200, 300]]
-    }
+    {"id": "walkway", "type": "safe", "required_ppe": ["helmet"],
+     "polygon": [[100,600],[900,600],[900,1000],[100,1000]]},
+    {"id": "press-area", "type": "restricted", "required_ppe": ["helmet", "vest"],
+     "polygon": [[1000,300],[1700,300],[1700,900],[1000,900]]},
+    {"id": "crane-drop", "type": "danger", "required_ppe": ["helmet", "vest"],
+     "polygon": [[1200,100],[1500,100],[1500,300],[1200,300]]}
   ]
 }
