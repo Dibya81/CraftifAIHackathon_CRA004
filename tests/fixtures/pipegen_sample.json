@@ -1,0 +1,29 @@
+{
+  "camera_id": "cam-01",
+  "frame_id": 100,
+  "ts": 1776435600.0,
+  "frame": {
+    "width": 1920,
+    "height": 1080
+  },
+  "objects": [
+    {
+      "track_id": 7,
+      "class": "person",
+      "conf": 0.94,
+      "bbox": [500.0, 300.0, 700.0, 800.0]
+    },
+    {
+      "track_id": null,
+      "class": "helmet",
+      "conf": 0.92,
+      "bbox": [540.0, 310.0, 660.0, 410.0]
+    },
+    {
+      "track_id": null,
+      "class": "vest",
+      "conf": 0.89,
+      "bbox": [530.0, 420.0, 670.0, 650.0]
+    }
+  ]
+}

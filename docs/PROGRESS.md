@@ -31,7 +31,24 @@
   - Acceptance Criteria AC-2 (`NO_HELMET` fires once in 3s; compliant person fires 0).
   - Acceptance Criteria AC-3 (`ZONE_INTRUSION` fires once; re-entry after cooldown fires second).
   - Benchmark performance: processed 500 frames with 20 simultaneous persons in 0.317s (0.63 ms/frame, 1578 FPS), well below the 6.0 ms/frame (15% single-core) budget.
-  - Test coverage: 31 passed tests, 89% total coverage across `src/sentinel` (models: 96%, tracker_assoc: 91%, zones: 97%, rules: 87%, incidents: 85%, config: 89%).
+  - Test coverage: 31 passed tests, 89% total coverage across `src/sentinel`.
   - Code hygiene: `ruff check` and `mypy` pass with 0 errors.
 - **What is pending**:
   - Phase 2: Detection adapter, MQTT client, simulator (`tools/simulate.py`), integration tests.
+
+---
+
+### 2026-10-17: Phase 2 - Detection Adapter, MQTT, and Simulator Completed
+- **What was done**:
+  - Documented canonical internal detection schema, incident event lifecycle (`incident_created`, `incident_updated`, `incident_acked`), and 1 Hz system health monitoring payload in `docs/DETECTION_SCHEMA.md`.
+  - Implemented `src/sentinel/adapters/pipegen.py`: `PipeGenAdapter` with configurable class mapping (`class_map`), numeric class ID parsing, and flexible detection structure ingestion; and `JsonFileMetadataTailer` for tailing JSON metadata files.
+  - Implemented `src/sentinel/mqtt_client.py`: `SentinelMQTTClient` utilizing `paho-mqtt` v2 with exponential backoff auto-reconnect, QoS 0 detection subscriptions, QoS 1 incident notifications, and retained health heartbeats.
+  - Implemented `tools/simulate.py`: Multi-scenario synthetic detection stream simulator (`compliant`, `no_helmet`, `restricted_entry`, `danger_dwell`, `crowd`, `flicker`) with real-time 25 FPS pacing, MQTT broadcasting, and synthetic OpenCV video rendering with zone outlines and privacy face-blurring.
+  - Created sample detection fixture in `tests/fixtures/pipegen_sample.json`.
+  - Authored unit and integration test suites: `tests/test_pipegen_adapter.py`, `tests/test_mqtt_client.py`, `tests/test_simulator.py`, and `tests/test_integration_mqtt.py`.
+- **What is verified**:
+  - End-to-end integration: synthetic scenario streaming -> adapter parsing -> rule engine state machine -> incident sink durable JSONL commit + MQTT publish.
+  - Test coverage: 39 passed tests across the suite, 88% overall test coverage in `src/sentinel`.
+  - Code hygiene: `ruff` and `mypy` clean across all 13 source files.
+- **What is pending**:
+  - Phase 3: Evidence writer with ring buffer and privacy verification (`evidence.py`, `tools/privacy_audit.py`).
