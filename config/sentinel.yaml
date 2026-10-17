@@ -1,0 +1,44 @@
+camera_id: cam-01
+
+source:
+  type: mqtt                  # mqtt | json_file
+  json_file_path: null
+
+mqtt:
+  host: localhost
+  port: 1883
+  detections_topic: sentinel/detections   # published by the PipeGen pipeline
+  incidents_topic: sentinel/incidents     # published by the rule engine
+  health_topic: sentinel/health
+
+paths:
+  incidents_log: logs/incidents.jsonl
+  evidence_dir: evidence
+  zones: config/zones.json
+
+privacy:
+  require_blurred_source: true
+
+evidence:
+  pre_seconds: 5
+  post_seconds: 5
+
+api:
+  host: 0.0.0.0
+  port: 8000
+
+# Mapping from external detector class labels or class IDs to internal types:
+# person, helmet, no_helmet, vest
+class_map:
+  "person": "person"
+  "0": "person"
+  "helmet": "helmet"
+  "hard_hat": "helmet"
+  "1": "helmet"
+  "no_helmet": "no_helmet"
+  "head": "no_helmet"
+  "2": "no_helmet"
+  "vest": "vest"
+  "safety_vest": "vest"
+  "high_vis_vest": "vest"
+  "3": "vest"

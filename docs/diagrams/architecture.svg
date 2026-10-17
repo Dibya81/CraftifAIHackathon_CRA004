@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1170 800" width="1170" height="800" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1E2A33"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1F6FD0"/></marker></defs>
+<rect width="1170" height="800" fill="#FFFFFF"/>
+<text x="30" y="38" font-size="24" font-weight="700" fill="#1E2A33">SiteSentinel architecture</text>
+<text x="30" y="58" font-size="13" fill="#4A5963">PipeGen perception engine, rule engine, evidence and dashboard</text>
+<text x="130" y="92" font-size="12" font-weight="700" fill="#4A5963" text-anchor="middle">INPUT AND TRAINING</text>
+<text x="455" y="92" font-size="12" font-weight="700" fill="#4A5963" text-anchor="middle">PERCEPTION (PIPEGEN)</text>
+<text x="885" y="92" font-size="12" font-weight="700" fill="#4A5963" text-anchor="middle">DECISION AND PRESENTATION</text>
+<rect x="30" y="110" width="200" height="80" rx="6" fill="#F4F5F6" stroke="#1E2A33" stroke-width="1.5"/>
+<text x="130.0" y="146.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Video source</text>
+<text x="130.0" y="162.0" font-size="11.5" fill="#4A5963" text-anchor="middle">USB camera, RTSP,</text>
+<text x="130.0" y="176.0" font-size="11.5" fill="#4A5963" text-anchor="middle">or video file</text>
+<rect x="30" y="250" width="200" height="100" rx="6" fill="#EEF6F0" stroke="#2E8B57" stroke-width="1.5"/>
+<text x="130.0" y="296.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Edge MLOps</text>
+<text x="130.0" y="312.0" font-size="11.5" fill="#4A5963" text-anchor="middle">Train PPE detector,</text>
+<text x="130.0" y="326.0" font-size="11.5" fill="#4A5963" text-anchor="middle">export ONNX,</text>
+<text x="130.0" y="340.0" font-size="11.5" fill="#4A5963" text-anchor="middle">verify parity</text>
+<rect x="270" y="100" width="370" height="330" rx="10" fill="#E6F0FB" stroke="#1F6FD0" stroke-width="2"/>
+<text x="285" y="120" font-size="12" font-weight="700" fill="#1F6FD0">PipeGen-generated DeepStream pipeline (untouched export)</text>
+<rect x="300" y="132" width="310" height="46" rx="6" fill="#FFFFFF" stroke="#1F6FD0" stroke-width="1.5"/>
+<text x="455.0" y="151.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Decode</text>
+<text x="455.0" y="167.0" font-size="11.5" fill="#4A5963" text-anchor="middle">file, USB or RTSP</text>
+<rect x="300" y="190" width="310" height="46" rx="6" fill="#FFFFFF" stroke="#1F6FD0" stroke-width="1.5"/>
+<text x="455.0" y="209.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Detector (TensorRT)</text>
+<text x="455.0" y="225.0" font-size="11.5" fill="#4A5963" text-anchor="middle">person, helmet, no helmet, vest; FP16 / INT8</text>
+<rect x="300" y="248" width="310" height="46" rx="6" fill="#FFFFFF" stroke="#1F6FD0" stroke-width="1.5"/>
+<text x="455.0" y="267.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Tracker</text>
+<text x="455.0" y="283.0" font-size="11.5" fill="#4A5963" text-anchor="middle">stable track IDs</text>
+<rect x="300" y="306" width="310" height="46" rx="6" fill="#FFFFFF" stroke="#1F6FD0" stroke-width="1.5"/>
+<text x="455.0" y="325.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Face-blur branch</text>
+<text x="455.0" y="341.0" font-size="11.5" fill="#4A5963" text-anchor="middle">blur before any frame is stored</text>
+<rect x="300" y="364" width="310" height="46" rx="6" fill="#FFFFFF" stroke="#1F6FD0" stroke-width="1.5"/>
+<text x="455.0" y="383.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Sinks</text>
+<text x="455.0" y="399.0" font-size="11.5" fill="#4A5963" text-anchor="middle">JSON, MQTT, annotated RTSP</text>
+<polyline points="455,178 455,190" fill="none" stroke="#1F6FD0" stroke-width="1.6" marker-end="url(#ab)"/>
+<polyline points="455,236 455,248" fill="none" stroke="#1F6FD0" stroke-width="1.6" marker-end="url(#ab)"/>
+<polyline points="455,294 455,306" fill="none" stroke="#1F6FD0" stroke-width="1.6" marker-end="url(#ab)"/>
+<polyline points="455,352 455,364" fill="none" stroke="#1F6FD0" stroke-width="1.6" marker-end="url(#ab)"/>
+<polyline points="230,150 300,155" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<polyline points="230,300 265,300 265,213 300,213" fill="none" stroke="#2E8B57" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="247" y="292" font-size="11" fill="#2E8B57" text-anchor="middle" font-style="italic">ONNX</text>
+<rect x="700" y="110" width="400" height="64" rx="6" fill="#F4F5F6" stroke="#1E2A33" stroke-width="1.5"/>
+<text x="900.0" y="138.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">MQTT broker (Mosquitto)</text>
+<text x="900.0" y="154.0" font-size="11.5" fill="#4A5963" text-anchor="middle">sentinel/detections, sentinel/incidents, sentinel/health</text>
+<rect x="700" y="214" width="400" height="92" rx="6" fill="#FFF4E5" stroke="#E8590C" stroke-width="1.5"/>
+<text x="900.0" y="256.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Rule engine (Python)</text>
+<text x="900.0" y="272.0" font-size="11.5" fill="#4A5963" text-anchor="middle">PPE-to-person association, zone polygon test,</text>
+<text x="900.0" y="286.0" font-size="11.5" fill="#4A5963" text-anchor="middle">per-track state machine, debounce and cooldown</text>
+<rect x="700" y="346" width="400" height="76" rx="6" fill="#FFF4E5" stroke="#E8590C" stroke-width="1.5"/>
+<text x="900.0" y="380.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Evidence writer and incident log</text>
+<text x="900.0" y="396.0" font-size="11.5" fill="#4A5963" text-anchor="middle">10 s blurred clips, incidents.jsonl</text>
+<rect x="700" y="462" width="400" height="64" rx="6" fill="#F4F5F6" stroke="#1E2A33" stroke-width="1.5"/>
+<text x="900.0" y="490.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">API (FastAPI + WebSocket)</text>
+<text x="900.0" y="506.0" font-size="11.5" fill="#4A5963" text-anchor="middle">incidents, zones, stats, live push</text>
+<rect x="700" y="566" width="400" height="80" rx="6" fill="#E3E6E8" stroke="#1E2A33" stroke-width="1.5"/>
+<text x="900.0" y="602.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Dashboard</text>
+<text x="900.0" y="618.0" font-size="11.5" fill="#4A5963" text-anchor="middle">live annotated view, incident feed, zone editor,</text>
+<text x="900.0" y="632.0" font-size="11.5" fill="#4A5963" text-anchor="middle">stats, system health</text>
+<polyline points="800,174 800,214" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="795" y="198" font-size="11" fill="#4A5963" text-anchor="end" font-style="italic">detections</text>
+<polyline points="1000,214 1000,174" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="1005" y="198" font-size="11" fill="#4A5963" text-anchor="start" font-style="italic">incidents</text>
+<polyline points="900,306 900,346" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<polyline points="900,422 900,462" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<polyline points="900,526 900,566" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<polyline points="610,372 665,372 665,142 700,142" fill="none" stroke="#1F6FD0" stroke-width="1.6" marker-end="url(#ab)"/>
+<text x="671" y="250" font-size="11" fill="#1F6FD0" text-anchor="start" font-style="italic">MQTT</text>
+<polyline points="610,392 700,392" fill="none" stroke="#1F6FD0" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#ab)"/>
+<text x="655" y="408" font-size="11" fill="#1F6FD0" text-anchor="middle" font-style="italic">blurred RTSP</text>
+<polyline points="455,410 455,606 700,606" fill="none" stroke="#1F6FD0" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#ab)"/>
+<text x="580" y="598" font-size="11" fill="#1F6FD0" text-anchor="middle" font-style="italic">annotated RTSP</text>
+<polyline points="1100,142 1118,142 1118,494 1100,494" fill="none" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/>
+<text transform="translate(1136,320) rotate(90)" font-size="11" fill="#4A5963" text-anchor="middle" font-style="italic">incidents + health</text>
+<text x="1112" y="320" font-size="1" fill="none"></text>
+<rect x="30" y="470" width="200" height="100" rx="6" fill="#EEF6F0" stroke="#2E8B57" stroke-width="1.5"/>
+<text x="130.0" y="516.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Evaluation harness</text>
+<text x="130.0" y="532.0" font-size="11.5" fill="#4A5963" text-anchor="middle">labelled clip in,</text>
+<text x="130.0" y="546.0" font-size="11.5" fill="#4A5963" text-anchor="middle">precision, recall,</text>
+<text x="130.0" y="560.0" font-size="11.5" fill="#4A5963" text-anchor="middle">alert latency out</text>
+<rect x="270" y="470" width="150" height="100" rx="6" fill="#F4F5F6" stroke="#1E2A33" stroke-width="1.5"/>
+<text x="345.0" y="516.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Reports</text>
+<text x="345.0" y="532.0" font-size="11.5" fill="#4A5963" text-anchor="middle">TensorRT speed,</text>
+<text x="345.0" y="546.0" font-size="11.5" fill="#4A5963" text-anchor="middle">FP16 vs INT8,</text>
+<text x="345.0" y="560.0" font-size="11.5" fill="#4A5963" text-anchor="middle">eval results</text>
+<polyline points="230,520 270,520" fill="none" stroke="#2E8B57" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="250" y="512" font-size="11" fill="#4A5963" text-anchor="middle" font-style="italic"></text>
+<rect x="30" y="620" width="390" height="70" rx="6" fill="#FFFFFF" stroke="#1E2A33" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text x="225.0" y="651.0" font-size="14" font-weight="600" fill="#1E2A33" text-anchor="middle">Config</text>
+<text x="225.0" y="667.0" font-size="11.5" fill="#4A5963" text-anchor="middle">sentinel.yaml, rules.yaml, zones.json</text>
+<text x="225.0" y="681.0" font-size="11.5" fill="#4A5963" text-anchor="middle">read by rule engine, API and evaluation</text>
+<line x1="30" y1="740" x2="80" y2="740" stroke="#1E2A33" stroke-width="1.6" marker-end="url(#ar)"/><text x="90" y="744" font-size="12" fill="#4A5963">data / message flow</text>
+<line x1="250" y1="740" x2="300" y2="740" stroke="#1F6FD0" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#ab)"/><text x="310" y="744" font-size="12" fill="#4A5963">video stream (privacy-blurred)</text>
+<rect x="540" y="731" width="16" height="16" rx="3" fill="#E6F0FB" stroke="#1F6FD0" stroke-width="1.5"/><text x="564" y="744" font-size="12" fill="#4A5963">PipeGen</text>
+<rect x="640" y="731" width="16" height="16" rx="3" fill="#FFF4E5" stroke="#E8590C" stroke-width="1.5"/><text x="664" y="744" font-size="12" fill="#4A5963">SiteSentinel custom logic</text>
+<rect x="840" y="731" width="16" height="16" rx="3" fill="#EEF6F0" stroke="#2E8B57" stroke-width="1.5"/><text x="864" y="744" font-size="12" fill="#4A5963">training and evaluation</text>
+</svg>

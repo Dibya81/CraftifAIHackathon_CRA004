@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+data/raw/*
+data/labelled/*
+data/test_clips/*
+models/engines/*
+models/onnx/*
+evidence/*
+logs/*
+!**/.gitkeep
+.env

@@ -1,0 +1,21 @@
+# Rule thresholds (tune after the week-3 baseline)
+no_helmet:
+  enabled: true
+  min_duration_s: 2.0
+  severity: MEDIUM
+no_vest:
+  enabled: true
+  min_duration_s: 2.0
+  severity: LOW
+zone_intrusion:
+  enabled: true
+  severity: HIGH
+danger_dwell:
+  enabled: true
+  dwell_s: 5.0
+  severity: HIGH
+cooldown_s: 30
+association:
+  head_region: [0.0, 0.25]    # fraction of person box height from top
+  torso_region: [0.25, 0.70]
+  min_overlap: 0.3
