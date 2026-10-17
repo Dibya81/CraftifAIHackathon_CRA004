@@ -12,6 +12,7 @@ Invariants:
 - One incident per continuous violation; re-alerts only after cooldown_s.
 - Confidence = mean detection confidence accumulated across the violating window.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -26,6 +27,7 @@ from sentinel.zones import Zone, ZoneManager
 @dataclass
 class RuleState:
     """State machine tracker for a single violation type on a track."""
+
     is_violating: bool = False
     violation_start_ts: Optional[float] = None
     incident_raised: bool = False
@@ -56,6 +58,7 @@ class RuleState:
 @dataclass
 class TrackState:
     """Complete multi-rule state for a single tracked person."""
+
     track_id: int
     last_seen_ts: float
     current_zone_id: Optional[str] = None
@@ -82,7 +85,9 @@ class RuleEngine:
     ) -> None:
         self.rules_cfg: RulesConfig = rules_cfg
         self.zone_mgr: ZoneManager = zone_manager
-        self.default_required_ppe: Set[str] = default_required_ppe if default_required_ppe is not None else {"helmet"}
+        self.default_required_ppe: Set[str] = (
+            default_required_ppe if default_required_ppe is not None else {"helmet"}
+        )
         self.tracks: Dict[int, TrackState] = {}
         self.last_frame_ts: Optional[float] = None
 
@@ -110,15 +115,21 @@ class RuleEngine:
         incidents: List[Incident] = []
 
         # 1. Partition detections into person vs PPE
-        persons = [d for d in frame.detections if d.class_name == "person" and d.track_id is not None]
-        ppe_dets = [d for d in frame.detections if d.class_name in {"helmet", "no_helmet", "head", "vest"}]
+        persons = [
+            d for d in frame.detections if d.class_name == "person" and d.track_id is not None
+        ]
+        ppe_dets = [
+            d for d in frame.detections if d.class_name in {"helmet", "no_helmet", "head", "vest"}
+        ]
 
         # 2. Frame dimensions for zone scaling
         fw = frame.frame.width if frame.frame else None
         fh = frame.frame.height if frame.frame else None
 
         # 3. Associate PPE with each person
-        associations: List[PersonPPEStatus] = associate_ppe(persons, ppe_dets, self.rules_cfg.association)
+        associations: List[PersonPPEStatus] = associate_ppe(
+            persons, ppe_dets, self.rules_cfg.association
+        )
 
         for status in associations:
             track_id = status.track_id

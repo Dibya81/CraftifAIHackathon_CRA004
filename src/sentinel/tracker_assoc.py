@@ -6,6 +6,7 @@ Enforces:
 3. Explicit 'no_helmet' detection in head region flags an explicit violation with elevated confidence.
 4. One-to-one / best-match assignment: each PPE box is assigned to at most one person (highest overlap).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ from sentinel.models import Box, Detection
 @dataclass
 class PersonPPEStatus:
     """PPE association status for a detected person."""
+
     person: Detection
     has_helmet: bool = False
     has_vest: bool = False
@@ -171,7 +173,9 @@ def _assign_vest(status: PersonPPEStatus, item: Detection, overlap: float) -> No
 class TrackerPPEAssociator:
     """Convenience class wrapper around associate_ppe for frame processing pipelines."""
 
-    def __init__(self, cfg: Optional[AssociationConfig] = None, min_overlap: Optional[float] = None) -> None:
+    def __init__(
+        self, cfg: Optional[AssociationConfig] = None, min_overlap: Optional[float] = None
+    ) -> None:
         if cfg is not None:
             self.cfg = cfg
         else:
@@ -183,4 +187,3 @@ class TrackerPPEAssociator:
         persons = [d for d in detections if d.class_name == "person"]
         ppe = [d for d in detections if d.class_name in {"helmet", "no_helmet", "head", "vest"}]
         return associate_ppe(persons, ppe, self.cfg)
-

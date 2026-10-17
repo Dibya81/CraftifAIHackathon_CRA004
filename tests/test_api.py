@@ -1,4 +1,5 @@
 """Tests for FastAPI service REST and WebSocket endpoints."""
+
 from pathlib import Path
 
 from starlette.testclient import TestClient
@@ -58,7 +59,9 @@ def test_api_incidents_crud(tmp_path: Path):
     assert resp_404.status_code == 404
 
     # 4. Acknowledge incident
-    resp_ack = client.post(f"/api/incidents/{inc.incident_id}/ack", json={"user": "officer-dave", "comment": "Checked"})
+    resp_ack = client.post(
+        f"/api/incidents/{inc.incident_id}/ack", json={"user": "officer-dave", "comment": "Checked"}
+    )
     assert resp_ack.status_code == 200
     assert resp_ack.json()["status"] == "acknowledged"
 
@@ -68,7 +71,10 @@ def test_api_incidents_crud(tmp_path: Path):
     assert resp_after.json()["ack_meta"]["user"] == "officer-dave"
 
     # 5. Add note
-    resp_note = client.post(f"/api/incidents/{inc.incident_id}/note", json={"note": "Worker retrieved helmet from locker."})
+    resp_note = client.post(
+        f"/api/incidents/{inc.incident_id}/note",
+        json={"note": "Worker retrieved helmet from locker."},
+    )
     assert resp_note.status_code == 200
     resp_with_note = client.get(f"/api/incidents/{inc.incident_id}")
     assert len(resp_with_note.json()["notes"]) == 1

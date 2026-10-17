@@ -9,6 +9,7 @@ Guarantees:
 - Defense in depth: Haar face detector audit on saved frames; emits PRIVACY_WARNING on legible faces.
 - Stream drop resilience: writes partial clip and marks clip metadata as 'partial' instead of crashing.
 """
+
 from __future__ import annotations
 
 import collections
@@ -31,6 +32,7 @@ logger = logging.getLogger("sentinel.evidence")
 
 class PrivacyViolationError(RuntimeError):
     """Raised when an attempt is made to record or persist evidence from an unblurred video source."""
+
     pass
 
 
@@ -94,7 +96,9 @@ class EvidenceWriter:
         self._pending_jobs: List[Dict[str, Any]] = []
         self._jobs_lock = threading.Lock()
 
-        self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="evidence-writer")
+        self._executor = ThreadPoolExecutor(
+            max_workers=max_workers, thread_name_prefix="evidence-writer"
+        )
         self._face_cascade: Any = None
 
     def audit_frame_for_unblurred_faces(self, frame: np.ndarray) -> bool:
@@ -102,13 +106,17 @@ class EvidenceWriter:
         # 1. Try OpenCV CascadeClassifier if available in current build
         if hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "data"):
             cv2_data = getattr(cv2, "data", None)
-            cascade_path = getattr(cv2_data, "haarcascades", "") + "haarcascade_frontalface_default.xml"
+            cascade_path = (
+                getattr(cv2_data, "haarcascades", "") + "haarcascade_frontalface_default.xml"
+            )
             if Path(cascade_path).is_file():
                 try:
                     classifier_cls = getattr(cv2, "CascadeClassifier")
                     cascade = classifier_cls(cascade_path)
                     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                    faces = cascade.detectMultiScale(
+                        gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
+                    )
                     if len(faces) > 0:
                         return True
                 except Exception as e:
@@ -159,9 +167,7 @@ class EvidenceWriter:
         # Capture pre-incident frames from buffer
         start_ts = trigger_ts - self.pre_seconds
         pre_frames = [
-            (t, f.copy())
-            for t, f in self.ring_buffer.snapshot()
-            if start_ts <= t <= trigger_ts
+            (t, f.copy()) for t, f in self.ring_buffer.snapshot() if start_ts <= t <= trigger_ts
         ]
 
         job = {
@@ -237,7 +243,9 @@ class EvidenceWriter:
         rel_clip_path = str(clip_path.relative_to(self.evidence_dir.parent))
         incident.evidence_clip = rel_clip_path
 
-        logger.info("Saved evidence clip to %s (frames: %d, fps: %.1f)", clip_path, len(all_frames), fps)
+        logger.info(
+            "Saved evidence clip to %s (frames: %d, fps: %.1f)", clip_path, len(all_frames), fps
+        )
 
         if self.on_clip_saved_callback:
             try:

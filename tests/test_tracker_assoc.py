@@ -1,4 +1,5 @@
 """Unit tests for PPE association: regional matching, explicit violations, and overlapping persons."""
+
 from sentinel.config import AssociationConfig
 from sentinel.models import Box, Detection
 from sentinel.tracker_assoc import associate_ppe

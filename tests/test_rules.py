@@ -1,4 +1,5 @@
 """Unit and scenario tests for RuleEngine state machines and acceptance criteria AC-2 and AC-3."""
+
 from sentinel.config import FrameDimensions, RulesConfig, ZoneDefinition, ZonesConfig
 from sentinel.models import Box, Detection, FrameMeta
 from sentinel.rules import RuleEngine
@@ -135,7 +136,9 @@ def test_ac3_zone_intrusion_and_reentry_cooldown():
             frame_id=2 + step,
             camera_id="cam-01",
             detections=[
-                Detection(class_name="person", conf=0.91, box=Box(1100, 200, 1300, 500), track_id=3),
+                Detection(
+                    class_name="person", conf=0.91, box=Box(1100, 200, 1300, 500), track_id=3
+                ),
                 Detection(class_name="helmet", conf=0.95, box=Box(1150, 210, 1250, 270)),
                 Detection(class_name="vest", conf=0.90, box=Box(1120, 280, 1280, 400)),
             ],
@@ -179,7 +182,9 @@ def test_debounce_edge():
         ts=0.0,
         frame_id=0,
         camera_id="cam-01",
-        detections=[Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=1)],
+        detections=[
+            Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=1)
+        ],
     )
     assert len(engine.process_frame(f0)) == 0
 
@@ -188,7 +193,9 @@ def test_debounce_edge():
         ts=1.9,
         frame_id=1,
         camera_id="cam-01",
-        detections=[Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=1)],
+        detections=[
+            Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=1)
+        ],
     )
     assert len(engine.process_frame(f1)) == 0
 
@@ -197,7 +204,9 @@ def test_debounce_edge():
         ts=2.0,
         frame_id=2,
         camera_id="cam-01",
-        detections=[Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=1)],
+        detections=[
+            Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=1)
+        ],
     )
     incs = engine.process_frame(f2)
     assert len(incs) == 1
@@ -243,7 +252,9 @@ def test_track_loss_and_reuse():
             ts=0.0,
             frame_id=0,
             camera_id="cam-01",
-            detections=[Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=8)],
+            detections=[
+                Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=8)
+            ],
         )
     )
     engine.process_frame(
@@ -251,7 +262,9 @@ def test_track_loss_and_reuse():
             ts=1.5,
             frame_id=1,
             camera_id="cam-01",
-            detections=[Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=8)],
+            detections=[
+                Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=8)
+            ],
         )
     )
 
@@ -260,7 +273,9 @@ def test_track_loss_and_reuse():
         ts=4.0,
         frame_id=2,
         camera_id="cam-01",
-        detections=[Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=8)],
+        detections=[
+            Detection(class_name="person", conf=0.9, box=Box(400, 400, 600, 800), track_id=8)
+        ],
     )
     # The previous 1.5s should NOT carry over to trigger immediately at t=4.0!
     incs = engine.process_frame(f_gap)

@@ -3,6 +3,7 @@
 Supports both a real Mosquitto broker (if running or Docker available) and an in-process
 broker for deterministic CI execution.
 """
+
 import socket
 from pathlib import Path
 from typing import Any, Dict, List
@@ -44,7 +45,9 @@ def test_pipeline_integration_in_process(tmp_path: Path):
             ),
         ],
     )
-    rules_cfg = RulesConfig(no_helmet={"enabled": True, "min_duration_s": 1.0, "severity": "MEDIUM"})
+    rules_cfg = RulesConfig(
+        no_helmet={"enabled": True, "min_duration_s": 1.0, "severity": "MEDIUM"}
+    )
     engine = RuleEngine(rules_cfg=rules_cfg, zone_manager=ZoneManager(zones_cfg))
     adapter = PipeGenAdapter()
 
@@ -102,10 +105,13 @@ def test_pipeline_integration_real_broker_if_available(tmp_path: Path):
     def on_msg(payload):
         received_detections.append(payload)
 
-    client = SentinelMQTTClient(mqtt_cfg, client_id="test-integration-client", on_detection_callback=on_msg)
+    client = SentinelMQTTClient(
+        mqtt_cfg, client_id="test-integration-client", on_detection_callback=on_msg
+    )
     try:
         client.connect()
         import time
+
         time.sleep(0.5)
 
         # Publish a test detection

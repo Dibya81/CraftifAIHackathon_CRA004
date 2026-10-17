@@ -1,4 +1,5 @@
 """Unit and integration tests for EvidenceWriter, RingBuffer, and privacy enforcement."""
+
 from pathlib import Path
 
 import numpy as np

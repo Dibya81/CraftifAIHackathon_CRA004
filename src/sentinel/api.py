@@ -14,6 +14,7 @@ Endpoints:
 - WS /ws/live
 - Static mount for /evidence
 """
+
 from __future__ import annotations
 
 import json
@@ -50,6 +51,7 @@ START_TIME = time.time()
 # ---------------------------------------------------------------------------
 # Request / Response Schemas
 # ---------------------------------------------------------------------------
+
 
 class AckRequest(BaseModel):
     user: Optional[str] = "operator"
@@ -101,6 +103,7 @@ class SystemResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Global State & WebSocket Connection Manager
 # ---------------------------------------------------------------------------
+
 
 class ConnectionManager:
     """Manages active WebSocket connections for live incident and telemetry streaming."""
@@ -156,7 +159,9 @@ def get_gpu_metrics() -> Tuple[Optional[float], Optional[float], Optional[float]
             "--query-gpu=utilization.gpu,power.draw,temperature.gpu",
             "--format=csv,noheader,nounits",
         ]
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=1.0)
+        res = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=1.0
+        )
         if res.returncode == 0 and res.stdout.strip():
             parts = [p.strip() for p in res.stdout.strip().split(",")]
             util = float(parts[0]) if len(parts) > 0 and parts[0] else None
@@ -171,6 +176,7 @@ def get_gpu_metrics() -> Tuple[Optional[float], Optional[float], Optional[float]
 # ---------------------------------------------------------------------------
 # FastAPI App Lifecycle & Configuration
 # ---------------------------------------------------------------------------
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -208,6 +214,7 @@ app.mount("/evidence", StaticFiles(directory=str(evidence_path)), name="evidence
 # ---------------------------------------------------------------------------
 # REST Endpoints
 # ---------------------------------------------------------------------------
+
 
 @app.get("/api/health", response_model=HealthResponse)
 def get_health() -> HealthResponse:
@@ -264,7 +271,9 @@ def get_incident(incident_id: str) -> Dict[str, Any]:
 
 
 @app.post("/api/incidents/{incident_id}/ack")
-async def acknowledge_incident(incident_id: str, req: Optional[AckRequest] = None) -> Dict[str, Any]:
+async def acknowledge_incident(
+    incident_id: str, req: Optional[AckRequest] = None
+) -> Dict[str, Any]:
     inc = state.incident_sink.get_by_id(incident_id)
     if not inc:
         raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
@@ -332,11 +341,13 @@ async def update_zones(zones_config: ZonesConfig) -> Dict[str, Any]:
     logger.info("Hot-reloaded zones (%d zones configured)", len(zones_config.zones))
 
     # Broadcast zone update over WebSocket
-    await state.ws_manager.broadcast({
-        "event": "zones_updated",
-        "zones_count": len(zones_config.zones),
-        "ts": time.time(),
-    })
+    await state.ws_manager.broadcast(
+        {
+            "event": "zones_updated",
+            "zones_count": len(zones_config.zones),
+            "ts": time.time(),
+        }
+    )
     return {"status": "zones_updated", "zones_count": len(zones_config.zones)}
 
 
@@ -347,8 +358,24 @@ def get_zone_snapshot() -> Response:
     if img is None:
         # Generate an annotated blank canvas if no frame has arrived yet
         img = np.full((1080, 1920, 3), (30, 42, 51), dtype=np.uint8)
-        cv2.putText(img, "SiteSentinel Video Feed", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (244, 245, 246), 2)
-        cv2.putText(img, "Ready for zone polygon authoring", (50, 160), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (200, 200, 200), 2)
+        cv2.putText(
+            img,
+            "SiteSentinel Video Feed",
+            (50, 100),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.5,
+            (244, 245, 246),
+            2,
+        )
+        cv2.putText(
+            img,
+            "Ready for zone polygon authoring",
+            (50, 160),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (200, 200, 200),
+            2,
+        )
 
     success, encoded = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
     if not success:
@@ -432,6 +459,7 @@ def get_engine_report() -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # WebSocket Live Feed
 # ---------------------------------------------------------------------------
+
 
 @app.websocket("/ws/live")
 async def websocket_live_feed(websocket: WebSocket) -> None:

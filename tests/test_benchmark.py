@@ -2,6 +2,7 @@
 
 using under 15% of one CPU core (< 6 ms per frame budget).
 """
+
 import time
 
 from sentinel.config import FrameDimensions, RulesConfig, ZoneDefinition, ZonesConfig
@@ -93,8 +94,12 @@ def test_rule_engine_throughput_benchmark():
     avg_ms_per_frame = (elapsed_s / num_frames) * 1000.0
     effective_fps = num_frames / elapsed_s
 
-    print(f"\n[Benchmark] Processed {num_frames} frames ({num_persons} persons each) in {elapsed_s:.3f}s")
+    print(
+        f"\n[Benchmark] Processed {num_frames} frames ({num_persons} persons each) in {elapsed_s:.3f}s"
+    )
     print(f"[Benchmark] Avg time per frame: {avg_ms_per_frame:.2f} ms ({effective_fps:.1f} FPS)")
 
     # 15% of one CPU core at 25 FPS = 0.15 * 40ms = 6.0 ms per frame
-    assert avg_ms_per_frame < 6.0, f"Engine too slow: {avg_ms_per_frame:.2f} ms/frame exceeds 6.0 ms budget"
+    assert avg_ms_per_frame < 6.0, (
+        f"Engine too slow: {avg_ms_per_frame:.2f} ms/frame exceeds 6.0 ms budget"
+    )

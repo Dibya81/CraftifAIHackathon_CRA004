@@ -2,6 +2,7 @@
 
 Ensures every generated incident is durably committed to disk with fsync before returning.
 """
+
 from __future__ import annotations
 
 import json

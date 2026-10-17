@@ -2,6 +2,7 @@
 
 Defines Box geometry, Detection, FrameMeta, and Incident according to PRD section 7.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -13,6 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 @dataclass(frozen=True)
 class Box:
     """Bounding box defined by [x1, y1, x2, y2] coordinates."""
+
     x1: float
     y1: float
     x2: float
@@ -85,6 +87,7 @@ class Box:
 @dataclass
 class Detection:
     """A detected object with class name, confidence, bounding box, and optional track ID."""
+
     class_name: str
     conf: float
     box: Box
@@ -108,6 +111,7 @@ class FrameDimensions:
 @dataclass
 class FrameMeta:
     """Per-frame detection payload with timestamp, frame ID, and detections."""
+
     ts: float  # epoch seconds (float)
     frame_id: int
     camera_id: str
@@ -118,6 +122,7 @@ class FrameMeta:
 @dataclass
 class Incident:
     """A safety incident raised by the rule engine (PRD section 7)."""
+
     incident_id: str
     timestamp: str  # ISO-8601 UTC
     camera_id: str

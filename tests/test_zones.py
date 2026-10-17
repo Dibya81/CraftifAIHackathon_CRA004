@@ -1,4 +1,5 @@
 """Unit tests for spatial zones and frame coordinate rescaling."""
+
 from sentinel.config import FrameDimensions, ZoneDefinition, ZonesConfig
 from sentinel.models import Box
 from sentinel.zones import ZoneManager
@@ -122,4 +123,3 @@ def test_zone_manager_from_file_and_getters():
     b_outside = Box(10, 10, 20, 20)
     ppe_outside = zm.get_required_ppe_for_person(b_outside, default_ppe={"helmet"})
     assert ppe_outside == {"helmet"}
-

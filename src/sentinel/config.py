@@ -3,6 +3,7 @@
 Provides explicit, actionable error messages indicating exactly what file, field,
 and value failed validation.
 """
+
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
@@ -12,12 +13,14 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, model_v
 
 class ConfigurationError(Exception):
     """Raised when configuration file parsing or validation fails with an actionable message."""
+
     pass
 
 
 # ---------------------------------------------------------------------------
 # Sentinel Configuration (config/sentinel.yaml)
 # ---------------------------------------------------------------------------
+
 
 class SourceConfig(BaseModel):
     type: Literal["mqtt", "json_file"] = "mqtt"
@@ -26,7 +29,9 @@ class SourceConfig(BaseModel):
     @model_validator(mode="after")
     def validate_source(self) -> "SourceConfig":
         if self.type == "json_file" and not self.json_file_path:
-            raise ValueError("When source.type is 'json_file', source.json_file_path must be specified.")
+            raise ValueError(
+                "When source.type is 'json_file', source.json_file_path must be specified."
+            )
         return self
 
 
@@ -122,8 +127,12 @@ class AssociationConfig(BaseModel):
 
 
 class RulesConfig(BaseModel):
-    no_helmet: RuleConditionConfig = Field(default_factory=lambda: RuleConditionConfig(severity="MEDIUM"))
-    no_vest: RuleConditionConfig = Field(default_factory=lambda: RuleConditionConfig(severity="LOW"))
+    no_helmet: RuleConditionConfig = Field(
+        default_factory=lambda: RuleConditionConfig(severity="MEDIUM")
+    )
+    no_vest: RuleConditionConfig = Field(
+        default_factory=lambda: RuleConditionConfig(severity="LOW")
+    )
     zone_intrusion: ZoneIntrusionConfig = Field(default_factory=ZoneIntrusionConfig)
     danger_dwell: DangerDwellConfig = Field(default_factory=DangerDwellConfig)
     cooldown_s: float = Field(default=30.0, ge=0.0)
@@ -133,6 +142,7 @@ class RulesConfig(BaseModel):
 # ---------------------------------------------------------------------------
 # Zones Configuration (config/zones.json)
 # ---------------------------------------------------------------------------
+
 
 class FrameDimensions(BaseModel):
     width: int = Field(gt=0)
@@ -168,6 +178,7 @@ class ZonesConfig(BaseModel):
 # Loading Helpers
 # ---------------------------------------------------------------------------
 
+
 def _format_validation_error(filename: str, exc: ValidationError) -> ConfigurationError:
     messages = []
     for err in exc.errors():
@@ -186,7 +197,9 @@ def _format_validation_error(filename: str, exc: ValidationError) -> Configurati
 def load_sentinel_config(path: Union[str, Path] = "config/sentinel.yaml") -> SentinelConfig:
     p = Path(path)
     if not p.is_file():
-        raise ConfigurationError(f"Sentinel config file not found: '{path}'. Please create it or verify path.")
+        raise ConfigurationError(
+            f"Sentinel config file not found: '{path}'. Please create it or verify path."
+        )
     try:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
     except Exception as e:
@@ -200,7 +213,9 @@ def load_sentinel_config(path: Union[str, Path] = "config/sentinel.yaml") -> Sen
 def load_rules_config(path: Union[str, Path] = "config/rules.yaml") -> RulesConfig:
     p = Path(path)
     if not p.is_file():
-        raise ConfigurationError(f"Rules config file not found: '{path}'. Please create it or verify path.")
+        raise ConfigurationError(
+            f"Rules config file not found: '{path}'. Please create it or verify path."
+        )
     try:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
     except Exception as e:
@@ -214,9 +229,12 @@ def load_rules_config(path: Union[str, Path] = "config/rules.yaml") -> RulesConf
 def load_zones_config(path: Union[str, Path] = "config/zones.json") -> ZonesConfig:
     p = Path(path)
     if not p.is_file():
-        raise ConfigurationError(f"Zones config file not found: '{path}'. Please create it or verify path.")
+        raise ConfigurationError(
+            f"Zones config file not found: '{path}'. Please create it or verify path."
+        )
     try:
         import json
+
         data = json.loads(p.read_text(encoding="utf-8"))
     except Exception as e:
         raise ConfigurationError(f"JSON syntax error in '{path}': {e}") from e
@@ -233,4 +251,5 @@ def load_yaml(path: str) -> dict:
 
 def load_zones(path: str) -> dict:
     import json
+
     return json.loads(Path(path).read_text(encoding="utf-8"))

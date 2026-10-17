@@ -5,6 +5,7 @@ Provides:
   configurable class mappings.
 - JsonFileMetadataTailer: tails an append-only JSONL file or directory of JSON frame metadata.
 """
+
 from __future__ import annotations
 
 import json
@@ -70,6 +71,7 @@ class PipeGenAdapter:
                 ts = float(ts_val)
             except ValueError:
                 import datetime
+
                 ts = datetime.datetime.fromisoformat(str(ts_val)).timestamp()
 
         # Frame resolution
@@ -138,21 +140,26 @@ class PipeGenAdapter:
             frame=frame_dims,
         )
 
-    def parse_frame(self, payload: Union[str, bytes, Dict[str, Any]]) -> Tuple[FrameMeta, List[Detection]]:
+    def parse_frame(
+        self, payload: Union[str, bytes, Dict[str, Any]]
+    ) -> Tuple[FrameMeta, List[Detection]]:
         """Parse payload and return tuple of (FrameMeta, List[Detection])."""
         meta = self.parse_payload(payload)
         return meta, meta.detections
 
 
-
 class JsonFileMetadataTailer:
     """Tails an append-only JSONL metadata file emitted by PipeGen."""
 
-    def __init__(self, file_path: Union[str, Path], adapter: Optional[PipeGenAdapter] = None) -> None:
+    def __init__(
+        self, file_path: Union[str, Path], adapter: Optional[PipeGenAdapter] = None
+    ) -> None:
         self.file_path = Path(file_path)
         self.adapter = adapter or PipeGenAdapter()
 
-    def iter_frames(self, poll_interval_s: float = 0.01, stop_at_eof: bool = False) -> Iterator[FrameMeta]:
+    def iter_frames(
+        self, poll_interval_s: float = 0.01, stop_at_eof: bool = False
+    ) -> Iterator[FrameMeta]:
         """Generator yielding FrameMeta from new lines in the metadata file."""
         if not self.file_path.exists():
             if stop_at_eof:

@@ -1,4 +1,5 @@
 """Unit tests for IncidentSink fsync durability, append-only log, and filtering."""
+
 from pathlib import Path
 
 from sentinel.incidents import IncidentSink

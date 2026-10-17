@@ -3,6 +3,7 @@
 Supports polygon zones (safe, restricted, danger), required PPE per zone, and
 automatic coordinate rescaling between runtime detection frame sizes and configured zone sizes.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,6 +19,7 @@ from sentinel.models import Box
 @dataclass
 class Zone:
     """A spatial safety zone with an ID, type, required PPE, and polygon geometry."""
+
     id: str
     type: str  # safe | restricted | danger
     required_ppe: Set[str] = field(default_factory=set)

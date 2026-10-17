@@ -1,4 +1,5 @@
 """Unit tests for Box geometry, Detection, FrameMeta, and Incident."""
+
 from sentinel.models import Box, Incident
 
 

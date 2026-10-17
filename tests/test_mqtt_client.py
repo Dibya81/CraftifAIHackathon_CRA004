@@ -1,4 +1,5 @@
 """Unit tests for SentinelMQTTClient callbacks and publishing behavior."""
+
 from unittest.mock import MagicMock
 
 from sentinel.config import MqttConfig

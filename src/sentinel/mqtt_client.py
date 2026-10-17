@@ -3,6 +3,7 @@
 Subscribes to PipeGen detections (QoS 0), publishes incidents (QoS 1),
 and emits retained health payloads (sentinel/health). Handles auto-reconnect with backoff.
 """
+
 from __future__ import annotations
 
 import json
@@ -89,7 +90,12 @@ class SentinelMQTTClient:
         data_str = json.dumps(payload)
         info = self.client.publish(self.config.incidents_topic, data_str, qos=1)
         info.wait_for_publish(timeout=2.0)
-        logger.info("Published incident %s (%s) to %s (QoS 1)", incident.incident_id, incident.type, self.config.incidents_topic)
+        logger.info(
+            "Published incident %s (%s) to %s (QoS 1)",
+            incident.incident_id,
+            incident.type,
+            self.config.incidents_topic,
+        )
 
     def publish_detection(self, detection_dict: Dict[str, Any]) -> None:
         """Publish a detection frame to sentinel/detections at QoS 0."""

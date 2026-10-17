@@ -1,4 +1,5 @@
 """Unit tests for PipeGenAdapter and JsonFileMetadataTailer."""
+
 from pathlib import Path
 
 from sentinel.adapters.pipegen import JsonFileMetadataTailer, PipeGenAdapter
@@ -30,7 +31,9 @@ def test_parse_fixture_sample():
 
 
 def test_numeric_class_mapping():
-    adapter = PipeGenAdapter(class_map={"0": "person", "1": "helmet", "2": "no_helmet", "3": "vest"})
+    adapter = PipeGenAdapter(
+        class_map={"0": "person", "1": "helmet", "2": "no_helmet", "3": "vest"}
+    )
     raw_payload = {
         "camera_id": "cam-test",
         "frame_id": 1,

@@ -1,4 +1,5 @@
 """Unit tests for SyntheticScenarioGenerator in tools/simulate.py."""
+
 from tools.simulate import SyntheticScenarioGenerator
 
 

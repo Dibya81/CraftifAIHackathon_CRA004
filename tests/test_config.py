@@ -1,4 +1,5 @@
 """Tests for config loading and validation error formatting."""
+
 from pathlib import Path
 
 import pytest

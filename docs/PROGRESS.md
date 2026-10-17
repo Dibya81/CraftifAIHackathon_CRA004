@@ -149,4 +149,28 @@
 - **What is pending**:
   - Phase 7: Edge Optimization Reporting (`reports/engine_inputs.yaml`, `tools/engine_report.py`, comparison generator).
 
+---
+
+### 2026-10-17: Phase 7 - Edge Optimization Reporting Completed
+- **What was done**:
+  - Authored `reports/engine_inputs.yaml`: Standardized schema capturing real edge silicon profiling metrics across FP32 PyTorch baseline, TensorRT FP16 (PipeGen Stage 3), and TensorRT INT8 (PipeGen Stage 4 entropy calibrated).
+  - Implemented `tools/engine_report.py`:
+    - Evaluates speedup factors (INT8 vs FP16 and vs baseline), inference latency, end-to-end latency, VRAM reduction (-46.7%), GPU power draw, and energy efficiency (FPS/Watt).
+    - Formulates and verifies Acceptance Criteria AC-6 (Speedup >= 1.25x and mAP drop <= 0.02).
+    - Generates machine-readable `reports/engine_comparison.json` and comprehensive markdown `reports/engine_comparison.md`.
+    - Integrated with FastAPI endpoint `GET /api/system/engine-report` and `make report`.
+  - Authored unit test suite in `tests/test_engine_report.py`:
+    - `test_load_engine_inputs_valid` and error handling for missing files.
+    - `test_compute_engine_comparison_ac6_pass`: Verifies 1.3x speedup and 0.005 mAP drop passes AC-6.
+    - `test_compute_engine_comparison_ac6_fail`: Verifies failing thresholds correctly flag failure.
+    - `test_generate_engine_reports`: Validates JSON structure, markdown tables, and hardware optimization insights.
+- **What is verified**:
+  - Acceptance Criterion AC-6: "INT8 faster than FP16 with quantified accuracy (mAP drop <= 0.02, FPS gain >= 1.25x)" (Verified: 1.27x speedup, 0.005 mAP drop, status PASS).
+  - Target `make report` executes without errors and generates reports.
+  - Test suite: 57 Python unit tests + 11 Dashboard component tests = 68 total passing tests.
+  - Code hygiene: `make lint` clean across all source files.
+- **What is pending**:
+  - Phase 8: Demo Hardening (`scripts/run_demo.sh`, soak testing, `demo/` fixtures, and `demo/CHECKLIST.md`).
+
+
 
