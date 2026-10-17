@@ -1,4 +1,4 @@
-"""Unit tests for spatial zones and frame coordinate rescaling."""
+import pytest
 
 from sentinel.config import FrameDimensions, ZoneDefinition, ZonesConfig
 from sentinel.models import Box
@@ -32,6 +32,7 @@ def make_test_manager():
     return ZoneManager(cfg)
 
 
+@pytest.mark.tc("TC-07")
 def test_foot_point_zone_matching():
     zm = make_test_manager()
 
@@ -79,6 +80,7 @@ def test_coordinate_rescaling_different_frame_size():
     assert zone.id == "walkway"
 
 
+@pytest.mark.tc("TC-08")
 def test_overlapping_priority():
     # Danger zone has priority over restricted zone
     cfg = ZonesConfig(

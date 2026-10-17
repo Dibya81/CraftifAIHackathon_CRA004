@@ -1,0 +1,122 @@
+version: "1.0"
+test_cases:
+  TC-01:
+    title: "Product Requirements Document and Specification Alignment"
+    category: "specification"
+    description: "Verify PRD sections, acceptance criteria, and schema alignment."
+  TC-02:
+    title: "TensorRT Engine Comparison Inputs and Reports with Provenance"
+    category: "edge_optimization"
+    description: "Verify engine_inputs.yaml parsing into JSON and Markdown reports with provenance sources."
+  TC-03:
+    title: "Hardware Environment and Pipeline Readiness Verification"
+    category: "hardware"
+    description: "Verify pipegen version, engine existence, and pipeline initialization."
+  TC-04:
+    title: "PipeGen Export Immutability and Hash Manifest Verification"
+    category: "integrity"
+    description: "Verify SHA-256 hash manifest of pipegen/export/ to prove untouched export."
+  TC-05:
+    title: "Static Code Scan for Prohibited Writes to pipegen/export"
+    category: "integrity"
+    description: "Scan all source files to assert zero write/open-write calls targeting pipegen/export."
+  TC-06:
+    title: "Domain Box Geometry, Coordinate Rectification, and IoA"
+    category: "domain"
+    description: "Pure domain Box arithmetic, inverted coordinate normalization, sub-regions, and intersection over area."
+  TC-07:
+    title: "Spatial Zone Geometry, Foot-Point Testing, and Coordinate Rescaling"
+    category: "domain"
+    description: "Polygon validity, foot-point containment, and frame resolution coordinate rescaling."
+  TC-08:
+    title: "Spatial Zone Overlapping Precedence Resolution"
+    category: "domain"
+    description: "Assert danger zones take precedence over restricted, and restricted over safe."
+  TC-09:
+    title: "Anatomical PPE Association (Head Helmet and Torso Vest)"
+    category: "domain"
+    description: "Match helmets to 0-25% head region and vests to 25-70% torso region at min_overlap."
+  TC-10:
+    title: "Multi-Person Overlapping PPE Greedy Disambiguation"
+    category: "domain"
+    description: "Assign PPE detections to the optimal person based on highest overlap."
+  TC-11:
+    title: "Explicit no_helmet Detection Confidence Elevation"
+    category: "domain"
+    description: "Explicit head-without-helmet detection raises violation confidence over mere absence."
+  TC-12:
+    title: "Temporal Debounce State Machine (min_duration_s)"
+    category: "domain"
+    description: "Assert violations must persist across frame timestamps for min_duration_s before incident is raised."
+  TC-13:
+    title: "Violation Cooldown and Re-Alert Suppression"
+    category: "domain"
+    description: "Assert exactly one incident is raised per continuous violation, requiring cooldown before re-alert."
+  TC-14:
+    title: "Restricted Polygon Immediate Entry Intrusion (ZONE_INTRUSION)"
+    category: "domain"
+    description: "Single-shot immediate incident triggered upon entry into restricted zone."
+  TC-15:
+    title: "Danger Zone Sustained Dwell Alert (DANGER_DWELL)"
+    category: "domain"
+    description: "High-severity alert triggered when dwelling in danger zone exceeds threshold."
+  TC-16:
+    title: "End-to-End Pipeline Integration (Simulator, Engine, DB, JSONL, MQTT)"
+    category: "integration"
+    description: "Stream simulated detections through adapter, rule engine, durable SQLite DB, and JSONL audit log."
+  TC-17:
+    title: "Evidence Writer, Ring Buffer Rollover, and Atomic Clip Saving"
+    category: "evidence"
+    description: "Thread-safe ring buffer, pre/post frame collection, atomic file rename, thumbnail generation, and partial clip recovery."
+  TC-18:
+    title: "Privacy by Design Enforcement and Automated Face Scan"
+    category: "privacy"
+    description: "Hard refusal to persist unblurred sources, PrivacyViolationError, and zero faces in evidence audit."
+  TC-19:
+    title: "FastAPI REST and WebSocket Service Contract"
+    category: "api"
+    description: "Endpoints, keyset pagination, ack, notes, zone hot-reload, WebSocket live push, and OpenAPI schema parity."
+  TC-20:
+    title: "MJPEG Video Stream Relay and Zone Snapshot Generation"
+    category: "video"
+    description: "Fan-out MJPEG streaming endpoint and latest frame snapshot for zone authoring."
+  TC-21:
+    title: "Offline Evaluation Interval Matcher and Accuracy Calculation"
+    category: "evaluation"
+    description: "Replay detections, match to ground-truth intervals within tolerance, compute precision, recall, and F1."
+  TC-22:
+    title: "Offline Evaluation Threshold Sweep and AC-5 Verification"
+    category: "evaluation"
+    description: "Parameter sweep over min_duration_s and min_overlap, flagging REAL vs SIMULATED provenance."
+  TC-23:
+    title: "TensorRT Edge Optimization Report and AC-6 Verification"
+    category: "edge_optimization"
+    description: "Verify INT8 vs FP16 speedup >= 1.25x and mAP drop <= 0.02 on edge silicon profile."
+  TC-24:
+    title: "Structured Logging, Correlation IDs, and Health Telemetry"
+    category: "observability"
+    description: "JSON lines log format, frame/incident correlation tracking, and 1 Hz health heartbeats."
+  TC-25:
+    title: "Violation Detection Latency under 3.0 Seconds"
+    category: "performance"
+    description: "Violation start to incident publish latency < 3.0s including debounce on injected clock."
+  TC-26:
+    title: "Rule Engine High-Throughput CPU Benchmark"
+    category: "performance"
+    description: "Rule engine processes 25 FPS with 20 persons in under 15% single-core CPU, p99 step < 5 ms."
+  TC-27:
+    title: "Fault Injection, Outbox Resilience, and Zero Incident Loss"
+    category: "resilience"
+    description: "Simulate broker drop, DB lock, camera drop; verify outbox drains with zero lost incidents."
+  TC-28:
+    title: "Sustained Stream Memory Boundedness and Track Purging Soak"
+    category: "resilience"
+    description: "1,000+ sustained frames verify RSS memory delta < 15 MB and inactive tracks purged."
+  TC-29:
+    title: "Live Hardware Pipeline Verification Script"
+    category: "hardware"
+    description: "make verify-hardware tests live PipeGen DeepStream execution and engine outputs."
+  TC-30:
+    title: "MQTT Topic Contract Parity with Architecture Documentation"
+    category: "contract"
+    description: "Assert config topic names match those documented in docs/ARCHITECTURE.md."

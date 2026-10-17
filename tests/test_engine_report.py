@@ -10,6 +10,7 @@ from tools.engine_report import (
 )
 
 
+@pytest.mark.tc("TC-02")
 def test_load_engine_inputs_valid():
     data = load_engine_inputs("reports/engine_inputs.yaml")
     assert "models" in data
@@ -23,6 +24,7 @@ def test_load_engine_inputs_missing_file():
         load_engine_inputs("nonexistent_inputs.yaml")
 
 
+@pytest.mark.tc("TC-23")
 def test_compute_engine_comparison_ac6_pass():
     mock_data = {
         "device": "NVIDIA Jetson Orin Nano",

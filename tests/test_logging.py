@@ -1,12 +1,13 @@
-"""Tests for structured logging."""
-
 import json
 import logging
 from pathlib import Path
 
+import pytest
+
 from sentinel.logging import setup_logging
 
 
+@pytest.mark.tc("TC-24")
 def test_structured_logging(tmp_path: Path):
     log_file = tmp_path / "test.log"
     logger = setup_logging(log_file=str(log_file), level=logging.INFO, console=False)

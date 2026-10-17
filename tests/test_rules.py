@@ -1,4 +1,4 @@
-"""Unit and scenario tests for RuleEngine state machines and acceptance criteria AC-2 and AC-3."""
+import pytest
 
 from sentinel.config import FrameDimensions, RulesConfig, ZoneDefinition, ZonesConfig
 from sentinel.models import Box, Detection, FrameMeta
@@ -35,6 +35,7 @@ def make_test_engine(cooldown_s: float = 30.0) -> RuleEngine:
     return RuleEngine(rules_cfg=rules_cfg, zone_manager=zm)
 
 
+@pytest.mark.tc("TC-12")
 def test_ac2_no_helmet_single_incident_within_3s():
     """AC-2: Person without helmet triggers exactly one NO_HELMET incident within 3 s;
 
@@ -93,6 +94,7 @@ def test_ac2_compliant_person_triggers_no_incident():
     assert len(all_incidents) == 0
 
 
+@pytest.mark.tc("TC-14")
 def test_ac3_zone_intrusion_and_reentry_cooldown():
     """AC-3: Entering a restricted polygon triggers one ZONE_INTRUSION;
 
@@ -173,6 +175,7 @@ def test_ac3_zone_intrusion_and_reentry_cooldown():
     assert incs2[0].type == "ZONE_INTRUSION"
 
 
+@pytest.mark.tc("TC-12")
 def test_debounce_edge():
     """Verify violation duration < min_duration_s does not fire, but >= min_duration_s fires."""
     engine = make_test_engine()
@@ -213,6 +216,7 @@ def test_debounce_edge():
     assert incs[0].type == "NO_HELMET"
 
 
+@pytest.mark.tc("TC-15")
 def test_danger_dwell_incident():
     """Verify DANGER_DWELL is raised when person stays in danger zone >= dwell_s (5.0s)."""
     engine = make_test_engine()

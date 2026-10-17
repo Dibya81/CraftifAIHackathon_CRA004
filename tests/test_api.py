@@ -1,7 +1,6 @@
-"""Tests for FastAPI service REST and WebSocket endpoints."""
-
 from pathlib import Path
 
+import pytest
 from starlette.testclient import TestClient
 
 from sentinel.api import app, state
@@ -26,6 +25,7 @@ def setup_test_app(tmp_path: Path):
     return inc
 
 
+@pytest.mark.tc("TC-19")
 def test_api_health(tmp_path: Path):
     client = TestClient(app)
     resp = client.get("/api/health")
@@ -81,6 +81,7 @@ def test_api_incidents_crud(tmp_path: Path):
     assert "Worker retrieved helmet" in resp_with_note.json()["notes"][0]["note"]
 
 
+@pytest.mark.tc("TC-20")
 def test_api_zones_crud_and_snapshot(tmp_path: Path):
     client = TestClient(app)
     zones_file = Path("config/zones.json")

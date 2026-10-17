@@ -1,10 +1,11 @@
-"""Unit and integration tests for tools/make_submission.py."""
-
 from pathlib import Path
+
+import pytest
 
 from tools.make_submission import SubmissionCollector, main
 
 
+@pytest.mark.tc("TC-01")
 def test_audit_deliverables_detects_existing_assets():
     collector = SubmissionCollector(Path("."))
     audits = collector.audit_deliverables()

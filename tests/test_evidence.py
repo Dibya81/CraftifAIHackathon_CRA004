@@ -11,6 +11,7 @@ from sentinel.models import Incident
 from tools.privacy_audit import run_privacy_audit
 
 
+@pytest.mark.tc("TC-18")
 def test_privacy_enforcement_refuses_unblurred_source(tmp_path: Path):
     """Hard rule: refuses to start or persist if source is not certified blurred."""
     cfg = SentinelConfig(
@@ -23,6 +24,7 @@ def test_privacy_enforcement_refuses_unblurred_source(tmp_path: Path):
     assert "refusing to initialize" in str(exc_info.value).lower()
 
 
+@pytest.mark.tc("TC-17")
 def test_ring_buffer_rollover():
     rb = RingBuffer(max_frames=5)
     dummy_frame = np.zeros((10, 10, 3), dtype=np.uint8)
@@ -37,6 +39,7 @@ def test_ring_buffer_rollover():
     assert timestamps == [5.0, 6.0, 7.0, 8.0, 9.0]
 
 
+@pytest.mark.tc("TC-17")
 def test_evidence_clip_and_thumbnail_creation(tmp_path: Path):
     evidence_dir = tmp_path / "evidence"
     cfg = SentinelConfig(

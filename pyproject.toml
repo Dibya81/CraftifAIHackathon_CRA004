@@ -19,6 +19,9 @@ dependencies = [
     "opencv-python>=4.9",
 ]
 
+[project.scripts]
+sentinel = "sentinel.interfaces.cli.main:app"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
@@ -48,3 +51,6 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 asyncio_mode = "auto"
+markers = [
+    "tc(name): Map test to Test Case ID (e.g. TC-01 to TC-30)"
+]

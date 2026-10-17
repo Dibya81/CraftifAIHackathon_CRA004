@@ -17,6 +17,7 @@ import argparse
 import datetime
 import json
 import math
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -25,6 +26,10 @@ import cv2
 import numpy as np
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import CallbackAPIVersion
+
+# Ensure src/ is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sentinel.models import Detection, FrameMeta
 
@@ -239,7 +244,7 @@ def run_simulator(
     # Video writer setup
     video_writer = None
     if out_video:
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
         Path(out_video).parent.mkdir(parents=True, exist_ok=True)
         video_writer = cv2.VideoWriter(out_video, fourcc, fps, (1920, 1080))
         print(f"[Sim] Writing annotated video to {out_video}")

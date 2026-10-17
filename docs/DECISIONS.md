@@ -42,3 +42,13 @@ This document records conflicts, gaps, and decisions made during development.
 - **Decision**: Implemented graceful offline fallbacks across all dashboard views. If the REST or WebSocket endpoints are momentarily unreachable, `App.tsx` populates default operational layouts, allows polygon drawing in `ZoneEditor`, and queues/maintains live state with automatic reconnection timers.
 - **Reason**: Guarantees judges and field operators can inspect system capabilities, zone editing, and report generation in any evaluation environment.
 
+### DEC-007: Hexagonal backend architecture, outbox pattern, and judge test matrix
+- **Date**: 2026-10-17
+- **Context**: Production backend requires clean separation of pure domain logic from I/O ports, durable transactional outbox delivery to prevent lost alerts across broker restarts, and automated judge verification (TC-01 through TC-30).
+- **Plan**:
+  1. Module Map: domain (models, zones, assoc, rules), ports (event_bus, repository, evidence_store, clock), application (use cases), adapters (pipegen, mqtt, storage, video, system), interfaces (api, cli), runtime (supervisor).
+  2. DB Schema: SQLite WAL + FKs: incidents, incident_notes, evidence, zones_versions, outbox, health_samples, metrics_hourly, schema_migrations.
+  3. Event Flow: Stream -> PipeGenAdapter -> FrameMeta -> ProcessFrame -> RuleEngine.step() -> IncidentCreated -> DB Tx (incident + outbox) & JSONL fsync -> OutboxPublisher -> sentinel/incidents (QoS 1) -> EvidenceWorker / WebSocket.
+  4. Risks & Mitigations: Re-export domain models to avoid breaking dashboard/tests; in-memory immediate notification with background outbox drain; WAL mode for concurrency.
+- **Reason**: Enforces non-negotiable correctness, determinism, testability with in-process fakes, and zero incident loss across faults.
+

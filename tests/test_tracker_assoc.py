@@ -1,10 +1,11 @@
-"""Unit tests for PPE association: regional matching, explicit violations, and overlapping persons."""
+import pytest
 
 from sentinel.config import AssociationConfig
 from sentinel.models import Box, Detection
 from sentinel.tracker_assoc import associate_ppe
 
 
+@pytest.mark.tc("TC-09")
 def test_basic_helmet_and_vest_association():
     cfg = AssociationConfig(head_region=(0.0, 0.25), torso_region=(0.25, 0.70), min_overlap=0.3)
 
@@ -26,6 +27,7 @@ def test_basic_helmet_and_vest_association():
     assert st.vest_overlap > 0.9
 
 
+@pytest.mark.tc("TC-11")
 def test_explicit_no_helmet_detection():
     cfg = AssociationConfig(head_region=(0.0, 0.25), torso_region=(0.25, 0.70), min_overlap=0.3)
     person = Detection(class_name="person", conf=0.9, box=Box(100, 100, 200, 500), track_id=2)
@@ -41,6 +43,7 @@ def test_explicit_no_helmet_detection():
     assert st.no_helmet_detection.conf == 0.94
 
 
+@pytest.mark.tc("TC-10")
 def test_overlapping_persons_claim_best_match():
     cfg = AssociationConfig(head_region=(0.0, 0.25), torso_region=(0.25, 0.70), min_overlap=0.3)
 

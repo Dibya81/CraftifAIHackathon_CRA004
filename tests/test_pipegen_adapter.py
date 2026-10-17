@@ -1,11 +1,12 @@
-"""Unit tests for PipeGenAdapter and JsonFileMetadataTailer."""
-
 from pathlib import Path
+
+import pytest
 
 from sentinel.adapters.pipegen import JsonFileMetadataTailer, PipeGenAdapter
 from sentinel.models import FrameMeta
 
 
+@pytest.mark.tc("TC-16")
 def test_parse_fixture_sample():
     adapter = PipeGenAdapter()
     fixture_path = Path("tests/fixtures/pipegen_sample.json")

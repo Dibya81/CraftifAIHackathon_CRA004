@@ -18,8 +18,9 @@ import numpy as np
 def detect_faces_in_bgr(bgr_img: np.ndarray) -> List[Tuple[int, int, int, int]]:
     """Detects legible unblurred faces using CascadeClassifier or skin+sharpness analysis."""
     # 1. Try CascadeClassifier if available
-    if hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "data"):
-        cascade_path = getattr(cv2.data, "haarcascades", "") + "haarcascade_frontalface_default.xml"
+    cv2_data = getattr(cv2, "data", None)
+    if hasattr(cv2, "CascadeClassifier") and cv2_data is not None:
+        cascade_path = getattr(cv2_data, "haarcascades", "") + "haarcascade_frontalface_default.xml"
         if Path(cascade_path).is_file():
             try:
                 cascade = cv2.CascadeClassifier(cascade_path)
@@ -46,12 +47,11 @@ def detect_faces_in_bgr(bgr_img: np.ndarray) -> List[Tuple[int, int, int, int]]:
                     detected.append((x, y, w, h))
     except Exception:
         pass
-
     return detected
 
 
 def audit_image(image_path: Path) -> List[Tuple[int, int, int, int]]:
-    """Inspects a still image and returns bounding boxes of any detected unblurred faces."""
+    """Inspects a single thumbnail or JPEG frame for unblurred faces."""
     img = cv2.imread(str(image_path))
     if img is None:
         return []
@@ -76,11 +76,13 @@ def audit_video(video_path: Path, sample_stride: int = 5) -> List[Tuple[int, Tup
     return violations
 
 
-def run_privacy_audit(evidence_dir: str = "evidence") -> bool:
+def audit_evidence_directory(evidence_dir: str | Path = "evidence") -> Tuple[bool, List[str]]:
+    """Scans evidence directory returning (passed, findings_list)."""
     target_dir = Path(evidence_dir)
+    findings: List[str] = []
     if not target_dir.exists():
         print(f"[Privacy Audit] Directory '{evidence_dir}' does not exist yet. No evidence to audit.")
-        return True
+        return True, findings
 
     image_files = list(target_dir.rglob("*.jpg")) + list(target_dir.rglob("*.png"))
     video_files = list(target_dir.rglob("*.mp4"))
@@ -88,26 +90,32 @@ def run_privacy_audit(evidence_dir: str = "evidence") -> bool:
     total_files = len(image_files) + len(video_files)
     print(f"[Privacy Audit] Scanning '{evidence_dir}': {len(video_files)} video clips, {len(image_files)} thumbnails...")
 
-    violations_found = 0
-
     for img_p in image_files:
         faces = audit_image(img_p)
         if faces:
-            print(f"[PRIVACY VIOLATION] Unblurred face detected in thumbnail: {img_p} (detected: {len(faces)} faces)")
-            violations_found += 1
+            msg = f"[PRIVACY VIOLATION] Unblurred face detected in thumbnail: {img_p} (detected: {len(faces)} faces)"
+            print(msg)
+            findings.append(msg)
 
     for vid_p in video_files:
         v_violations = audit_video(vid_p)
         if v_violations:
-            print(f"[PRIVACY VIOLATION] Unblurred face detected in video: {vid_p} (violations: {len(v_violations)})")
-            violations_found += 1
+            msg = f"[PRIVACY VIOLATION] Unblurred face detected in video: {vid_p} (violations: {len(v_violations)})"
+            print(msg)
+            findings.append(msg)
 
-    if violations_found > 0:
-        print(f"\n[PRIVACY AUDIT FAILED] Found {violations_found} privacy violations across {total_files} files!")
-        return False
+    if findings:
+        print(f"\n[PRIVACY AUDIT FAILED] Found {len(findings)} privacy violations across {total_files} files!")
+        return False, findings
 
     print(f"[PRIVACY AUDIT PASS] All {total_files} evidence files verified free of unblurred faces.")
-    return True
+    return True, findings
+
+
+def run_privacy_audit(evidence_dir: str | Path = "evidence") -> bool:
+    """Audits evidence directory and returns boolean True if clean, False if violations found."""
+    passed, _ = audit_evidence_directory(evidence_dir)
+    return passed
 
 
 def main() -> None:

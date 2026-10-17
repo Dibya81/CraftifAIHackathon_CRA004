@@ -5,12 +5,15 @@ using under 15% of one CPU core (< 6 ms per frame budget).
 
 import time
 
+import pytest
+
 from sentinel.config import FrameDimensions, RulesConfig, ZoneDefinition, ZonesConfig
 from sentinel.models import Box, Detection, FrameMeta
 from sentinel.rules import RuleEngine
 from sentinel.zones import ZoneManager
 
 
+@pytest.mark.tc("TC-26")
 def test_rule_engine_throughput_benchmark():
     zones_cfg = ZonesConfig(
         frame=FrameDimensions(width=1920, height=1080),

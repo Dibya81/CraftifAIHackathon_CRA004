@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from eval.evaluate import (
     EvaluationSummary,
     GroundTruthInterval,
@@ -43,6 +45,7 @@ def test_label_clip_save_and_inspect(tmp_path: Path):
     assert data["violations"][0]["type"] == "NO_HELMET"
 
 
+@pytest.mark.tc("TC-21")
 def test_match_incidents_to_ground_truth_metrics():
     # Ground truth: 2 incidents
     ground_truth = [
@@ -152,6 +155,7 @@ def test_evaluation_report_generation(tmp_path: Path):
     assert "Threshold Sweep Analysis" in md_text
 
 
+@pytest.mark.tc("TC-22")
 def test_run_threshold_sweep_and_replay():
     sim = Simulator(fps=25.0)
     frames = sim.generate_scenario("no_helmet", duration_s=4.0)

@@ -3,7 +3,7 @@ RUFF ?= $(shell if [ -f .venv/bin/ruff ]; then echo .venv/bin/ruff; else echo ru
 MYPY ?= $(shell if [ -f .venv/bin/mypy ]; then echo .venv/bin/mypy; else echo mypy; fi)
 PYTEST ?= $(shell if [ -f .venv/bin/pytest ]; then echo .venv/bin/pytest; else echo pytest; fi)
 
-.PHONY: all install test lint format sim demo eval report test-privacy submission clean
+.PHONY: all install test lint format sim demo eval report test-privacy submission judge verify-hardware clean
 
 all: lint test
 
@@ -47,6 +47,12 @@ test-privacy:
 
 submission:
 	$(PYTHON) tools/make_submission.py
+
+judge:
+	$(PYTHON) tools/judge.py
+
+verify-hardware:
+	./scripts/verify_hardware.sh
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

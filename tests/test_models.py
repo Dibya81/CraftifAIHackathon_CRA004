@@ -1,8 +1,11 @@
 """Unit tests for Box geometry, Detection, FrameMeta, and Incident."""
 
+import pytest
+
 from sentinel.models import Box, Incident
 
 
+@pytest.mark.tc("TC-06")
 def test_box_properties():
     b = Box(100.0, 200.0, 300.0, 600.0)
     assert b.width == 200.0
