@@ -188,8 +188,36 @@
   - Test suite: 58 Python unit tests + 11 Dashboard component tests = 69 total passing tests.
   - Code hygiene: `make lint` clean across all backend files.
 - **What is pending**:
-  - Phase 9: Submission Pack (`tools/make_submission.py`, `SUBMISSION.md`, README quickstart).
+  - None (All software phases Phase 0 through Phase 9 complete!).
+  - Live hardware booth tasks (tracked in `HUMAN_TODO.md`).
 
+---
 
-
-
+### 2026-10-17: Phase 9 - Submission Pack & Final Polish Completed
+- **What was done**:
+  - Implemented `tools/make_submission.py`:
+    - Comprehensive deliverable auditor verifying 19 submission components.
+    - Synthesizes `SUBMISSION.md` detailing problem statement, Track A PipeGen 5-stage fulfillment, system architecture, Edge Optimization Bonus (INT8 vs FP16 vs FP32 on Jetson Orin), offline evaluation benchmarks (AC-5), privacy-by-design enforcement (AC-4), live dashboard capabilities (AC-7), evidence audit checklist, 5-minute reproduction commands, and 4-minute judge script.
+    - Explicitly surfaces and flags physical hardware booth deliverables with references to `HUMAN_TODO.md`.
+  - Authored unit test suite in `tests/test_submission.py`:
+    - `test_audit_deliverables_detects_existing_assets`
+    - `test_audit_deliverables_flags_pending_hardware_items`
+    - `test_generate_submission_markdown_contents`
+    - `test_cli_execution_check_only`
+    - `test_cli_execution_strict_pass`
+    - `test_cli_strict_fails_on_missing_software`
+  - Added sample incidents fixture `tests/fixtures/sample_incidents.jsonl` and sample blurred video clip/thumbnail in `evidence/sample/`.
+  - Finalized root `README.md` with 5-minute quickstart, badges, embedded SVG architecture diagram, track alignment table, edge optimization comparison, acceptance criteria scorecard, and judge walkthrough.
+  - Added `submission` target to `Makefile`.
+  - Updated `docs/TRACEABILITY.md` with final verification statuses.
+- **What is verified**:
+  - Full Python test suite: 64 passed tests.
+  - Full Dashboard test suite: 11 passed Vitest tests.
+  - Total tests across project: 75 passed (100% pass rate).
+  - Code hygiene: `make lint` clean (Ruff check + format, Mypy 0 errors).
+  - Privacy audit: `make test-privacy` verifies zero unblurred faces across all evidence clips.
+  - Offline evaluation: `make eval` passes AC-5 with 100.0% precision, 100.0% recall, 0.12s latency.
+  - Edge optimization report: `make report` passes AC-6 with 1.27x speedup, -46.7% VRAM, 0.005 mAP delta.
+  - Submission generation: `make submission` generates complete `SUBMISSION.md`.
+- **What is pending**:
+  - Physical booth check-in tasks on live NVIDIA GPU / Jetson hardware (`HUMAN_TODO.md`).

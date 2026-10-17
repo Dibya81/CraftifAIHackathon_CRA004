@@ -28,3 +28,5 @@ This document maps every Functional Requirement (FR-x) and Acceptance Criterion 
 | AC-5 | >= 85% recall, 80% precision on held-out clip | `eval/evaluate.py` | `eval/evaluate.py` run | Verified (Phase 6) |
 | AC-6 | INT8 faster than FP16 with quantified accuracy | `tools/engine_report.py` | `make report` / report check | Verified (Phase 7) |
 | AC-7 | Dashboard displays incident within 1s of MQTT | `dashboard/`, `src/sentinel/api.py` | Vitest + Component tests | Verified (Phase 5) |
+| SUB-1 | Complete Submission Pack (PRD, Arch, Reports, Evidence) | `tools/make_submission.py`, `SUBMISSION.md` | `tests/test_submission.py`, `make submission` | Verified (Phase 9) |
+

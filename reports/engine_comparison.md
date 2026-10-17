@@ -1,6 +1,6 @@
 # SiteSentinel: TensorRT Engine Optimization Comparison
 
-**Date**: 2026-10-17T22:34:32.498370  
+**Date**: 2026-10-17T22:48:45.436536  
 **Target Silicon**: `NVIDIA Jetson Orin Nano Developer Kit (8GB)` (15W profile)  
 **Input Stream**: `1920x1080`  
 **Calibration Source**: `models/calibration (500 representative frames)`  
