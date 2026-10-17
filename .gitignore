@@ -11,3 +11,6 @@ evidence/*
 logs/*
 !**/.gitkeep
 .env
+.coverage
+.coverage.*
+

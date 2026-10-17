@@ -7,14 +7,14 @@ This document maps every Functional Requirement (FR-x) and Acceptance Criterion 
 | FR-1 | Build pipeline through all 5 PipeGen stages | `pipegen/export/` | `HUMAN_TODO.md` §1 (Hardware/GUI) | Pending HW |
 | FR-2 | Accept video file, USB camera or RTSP | `pipegen/export/run.sh`, `scripts/run_demo.sh` | Manual verification, CLI args | Pending HW |
 | FR-3 | Compile model to TensorRT + keep speed report | `reports/speed_report_fp16.txt` | `HUMAN_TODO.md` §1 | Pending HW |
-| FR-4 | Detect person, hard hat, head w/o hat, vest | `src/sentinel/models.py`, `pipegen/` | `tests/test_tracker_assoc.py` | Phase 1 |
-| FR-5 | Track persons with stable IDs | `src/sentinel/models.py`, `pipegen/` | `tests/test_rules.py` | Phase 1 |
-| FR-6 | Associate PPE boxes via head & torso overlap | `src/sentinel/tracker_assoc.py` | `tests/test_tracker_assoc.py` | Phase 1 |
-| FR-7 | Polygon zones from JSON config & dashboard | `src/sentinel/zones.py` | `tests/test_zones.py` | Phase 1 |
-| FR-8 | Incident for missing PPE > N seconds (debounce) | `src/sentinel/rules.py` | `tests/test_rules.py` | Phase 1 |
-| FR-9 | Incident on restricted zone entry & danger dwell | `src/sentinel/rules.py` | `tests/test_rules.py` | Phase 1 |
-| FR-10 | Debounce & cooldown per track violation | `src/sentinel/rules.py` | `tests/test_rules.py` | Phase 1 |
-| FR-11 | Publish to MQTT & append to `incidents.jsonl` | `src/sentinel/incidents.py`, `mqtt_client.py` | `tests/test_incidents.py` | Phase 1/2 |
+| FR-4 | Detect person, hard hat, head w/o hat, vest | `src/sentinel/models.py`, `pipegen/` | `tests/test_tracker_assoc.py` | Verified (Phase 1) |
+| FR-5 | Track persons with stable IDs | `src/sentinel/models.py`, `pipegen/` | `tests/test_rules.py` | Verified (Phase 1) |
+| FR-6 | Associate PPE boxes via head & torso overlap | `src/sentinel/tracker_assoc.py` | `tests/test_tracker_assoc.py` | Verified (Phase 1) |
+| FR-7 | Polygon zones from JSON config & dashboard | `src/sentinel/zones.py` | `tests/test_zones.py` | Verified (Phase 1) |
+| FR-8 | Incident for missing PPE > N seconds (debounce) | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
+| FR-9 | Incident on restricted zone entry & danger dwell | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
+| FR-10 | Debounce & cooldown per track violation | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
+| FR-11 | Publish to MQTT & append to `incidents.jsonl` | `src/sentinel/incidents.py`, `mqtt_client.py` | `tests/test_incidents.py` | Partial (Sink Verified) |
 | FR-12 | Save 10s blurred evidence clip (5s pre, 5s post) | `src/sentinel/evidence.py` | `tests/test_evidence.py` | Phase 3 |
 | FR-13 | Live dashboard view, feed, counts, hourly | `dashboard/` | Vitest + Playwright | Phase 5 |
 | FR-14 | Offline evaluation harness (precision/recall/lat)| `eval/evaluate.py` | `tests/test_eval.py` | Phase 6 |
@@ -22,8 +22,8 @@ This document maps every Functional Requirement (FR-x) and Acceptance Criterion 
 | FR-16 | Custom PPE detector with Edge MLOps parity | `models/` | `HUMAN_TODO.md` §4 | Pending HW |
 | FR-17 | Telegram / webhook forwarding for HIGH incidents | `src/sentinel/notifications.py` | `tests/test_notifications.py` | Optional |
 | AC-1 | 10 minutes live run on USB camera without crash | System soak / live | `HUMAN_TODO.md` §3 | Pending HW |
-| AC-2 | Person w/o helmet -> 1 incident in 3s; with -> 0 | `src/sentinel/rules.py` | `tests/test_rules.py` | Phase 1 |
-| AC-3 | Restricted polygon -> 1 incident; re-entry -> 2 | `src/sentinel/rules.py` | `tests/test_rules.py` | Phase 1 |
+| AC-2 | Person w/o helmet -> 1 incident in 3s; with -> 0 | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
+| AC-3 | Restricted polygon -> 1 incident; re-entry -> 2 | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
 | AC-4 | No stored clip contains legible face | `src/sentinel/evidence.py`, `tools/privacy_audit.py` | `tests/test_evidence.py` | Phase 3 |
 | AC-5 | >= 85% recall, 80% precision on held-out clip | `eval/evaluate.py` | `eval/evaluate.py` run | Phase 6 |
 | AC-6 | INT8 faster than FP16 with quantified accuracy | `tools/engine_report.py` | Report check | Phase 7 |
