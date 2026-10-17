@@ -1,0 +1,36 @@
+{
+  "clip": "data/test_clips/site01.mp4",
+  "fps": 25.0,
+  "frame_count": 475,
+  "duration_s": 19.0,
+  "violations": [
+    {
+      "type": "NO_HELMET",
+      "start_s": 2.0,
+      "end_s": 5.0,
+      "track_id": 2,
+      "zone": "walkway"
+    },
+    {
+      "type": "ZONE_INTRUSION",
+      "start_s": 9.5,
+      "end_s": 11.5,
+      "track_id": 3,
+      "zone": "press-area"
+    },
+    {
+      "type": "ZONE_INTRUSION",
+      "start_s": 11.0,
+      "end_s": 12.5,
+      "track_id": 4,
+      "zone": "crane-drop"
+    },
+    {
+      "type": "DANGER_DWELL",
+      "start_s": 15.5,
+      "end_s": 19.0,
+      "track_id": 4,
+      "zone": "crane-drop"
+    }
+  ]
+}

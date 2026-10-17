@@ -14,16 +14,52 @@ Named scenarios:
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import math
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import CallbackAPIVersion
+
+from sentinel.models import Detection, FrameMeta
+
+
+class Simulator:
+    """Convenience simulation harness providing typed FrameMeta and Detection objects."""
+
+    def __init__(self, fps: float = 25.0, camera_id: str = "cam-01") -> None:
+        self.fps = fps
+        self.camera_id = camera_id
+
+    def generate_scenario(
+        self,
+        scenario: str,
+        duration_s: float = 5.0,
+        start_ts: Optional[datetime.datetime] = None,
+    ) -> List[Tuple[FrameMeta, List[Detection]]]:
+        from sentinel.adapters.pipegen import PipeGenAdapter
+
+        gen = SyntheticScenarioGenerator(scenario=scenario, fps=self.fps)
+        adapter = PipeGenAdapter(default_camera_id=self.camera_id)
+        frames: List[Tuple[FrameMeta, List[Detection]]] = []
+
+        total_frames = int(duration_s * self.fps)
+        base_dt = start_ts or datetime.datetime.now(datetime.timezone.utc)
+
+        for f_idx in range(total_frames):
+            t_sec = f_idx / self.fps
+            raw_dict = gen.generate_frame(f_idx, t_sec)
+            frame_dt = base_dt + datetime.timedelta(seconds=t_sec)
+            raw_dict["ts"] = frame_dt.isoformat()
+            meta, detections = adapter.parse_frame(raw_dict)
+            frames.append((meta, detections))
+
+        return frames
 
 
 class SyntheticScenarioGenerator:

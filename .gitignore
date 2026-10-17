@@ -4,6 +4,7 @@ __pycache__/
 node_modules/
 data/raw/*
 data/labelled/*
+!data/labelled/*.json
 data/test_clips/*
 models/engines/*
 models/onnx/*

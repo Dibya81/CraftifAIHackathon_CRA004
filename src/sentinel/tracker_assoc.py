@@ -9,7 +9,7 @@ Enforces:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 from sentinel.config import AssociationConfig
 from sentinel.models import Box, Detection
@@ -166,3 +166,21 @@ def _assign_vest(status: PersonPPEStatus, item: Detection, overlap: float) -> No
     status.has_vest = True
     status.vest_detection = item
     status.vest_overlap = overlap
+
+
+class TrackerPPEAssociator:
+    """Convenience class wrapper around associate_ppe for frame processing pipelines."""
+
+    def __init__(self, cfg: Optional[AssociationConfig] = None, min_overlap: Optional[float] = None) -> None:
+        if cfg is not None:
+            self.cfg = cfg
+        else:
+            self.cfg = AssociationConfig()
+        if min_overlap is not None:
+            self.cfg.min_overlap = min_overlap
+
+    def associate(self, meta: Any, detections: List[Detection]) -> List[PersonPPEStatus]:
+        persons = [d for d in detections if d.class_name == "person"]
+        ppe = [d for d in detections if d.class_name in {"helmet", "no_helmet", "head", "vest"}]
+        return associate_ppe(persons, ppe, self.cfg)
+

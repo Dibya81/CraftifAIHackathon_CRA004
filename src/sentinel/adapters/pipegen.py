@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 from sentinel.models import Box, Detection, FrameDimensions, FrameMeta
 
@@ -60,8 +60,17 @@ class PipeGenAdapter:
         frame_id = int(data.get("frame_id", 0))
         ts_val = data.get("ts")
         if ts_val is None:
-            ts_val = data.get("timestamp", time.time())
-        ts = float(ts_val)
+            ts_val = data.get("timestamp")
+        if ts_val is None:
+            ts = time.time()
+        elif isinstance(ts_val, (int, float)):
+            ts = float(ts_val)
+        else:
+            try:
+                ts = float(ts_val)
+            except ValueError:
+                import datetime
+                ts = datetime.datetime.fromisoformat(str(ts_val)).timestamp()
 
         # Frame resolution
         frame_dims: Optional[FrameDimensions] = None
@@ -128,6 +137,12 @@ class PipeGenAdapter:
             detections=detections,
             frame=frame_dims,
         )
+
+    def parse_frame(self, payload: Union[str, bytes, Dict[str, Any]]) -> Tuple[FrameMeta, List[Detection]]:
+        """Parse payload and return tuple of (FrameMeta, List[Detection])."""
+        meta = self.parse_payload(payload)
+        return meta, meta.detections
+
 
 
 class JsonFileMetadataTailer:

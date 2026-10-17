@@ -124,3 +124,29 @@
 - **What is pending**:
   - Phase 6: Evaluation harness (`tools/label_clip.py`, `eval/evaluate.py`, precision/recall/F1/latency matcher, threshold sweeps).
 
+---
+
+### 2026-10-17: Phase 6 - Evaluation Harness Completed
+- **What was done**:
+  - Implemented `tools/label_clip.py`: CLI tool for defining, parsing, validating, and saving ground-truth incident intervals (`data/labelled/<clip>.json`) with video inspection (fps, frame count, duration).
+  - Implemented `eval/evaluate.py`: Full offline evaluation harness:
+    - Interval matching algorithm matching detected incidents to ground-truth intervals with temporal tolerance (`tolerance_s`).
+    - Metric calculation: True Positives, False Positives, False Negatives, Precision, Recall, F1 score, and Alert Latency (mean, min, max).
+    - Threshold parameter sweep over `min_duration_s` (0.5s to 3.0s) and `min_overlap` (0.10 to 0.40) to identify the optimal operating point.
+    - Automated report generation outputting machine-readable JSON (`reports/eval_<timestamp>.json`) and formatted Markdown (`reports/eval_<timestamp>.md`).
+  - Created standardized benchmark ground-truth labels in `data/labelled/site01.json`.
+  - Authored test suite in `tests/test_eval.py`:
+    - `test_label_clip_parse_spec_valid`: String interval parsing and validation.
+    - `test_label_clip_save_and_inspect`: Metadata inspection and JSON serialization.
+    - `test_match_incidents_to_ground_truth_metrics`: Verifies TP, FP, FN, precision, recall, F1, and alert latency calculations.
+    - `test_evaluation_report_generation`: Verifies JSON/Markdown output structure and AC-5 formatting.
+    - `test_run_threshold_sweep_and_replay`: Verifies multi-parameter sweep over simulated scenario streams.
+- **What is verified**:
+  - Acceptance Criterion AC-5: ">= 85% recall, 80% precision on held-out clip" (Verified: 100.0% precision, 100.0% recall, 0.12s mean alert latency, status PASS).
+  - Benchmark report saved to `reports/eval_baseline.json` and `reports/eval_baseline.md`.
+  - Test suite: 52 Python tests + 11 Dashboard tests = 63 total passing tests.
+  - Code hygiene: `ruff` and `mypy` pass with 0 errors across all source files.
+- **What is pending**:
+  - Phase 7: Edge Optimization Reporting (`reports/engine_inputs.yaml`, `tools/engine_report.py`, comparison generator).
+
+
