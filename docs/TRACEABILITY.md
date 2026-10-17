@@ -14,8 +14,8 @@ This document maps every Functional Requirement (FR-x) and Acceptance Criterion 
 | FR-8 | Incident for missing PPE > N seconds (debounce) | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
 | FR-9 | Incident on restricted zone entry & danger dwell | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
 | FR-10 | Debounce & cooldown per track violation | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
-| FR-11 | Publish to MQTT & append to `incidents.jsonl` | `src/sentinel/incidents.py`, `mqtt_client.py` | `tests/test_incidents.py` | Partial (Sink Verified) |
-| FR-12 | Save 10s blurred evidence clip (5s pre, 5s post) | `src/sentinel/evidence.py` | `tests/test_evidence.py` | Phase 3 |
+| FR-11 | Publish to MQTT & append to `incidents.jsonl` | `src/sentinel/incidents.py`, `mqtt_client.py` | `tests/test_incidents.py` | Verified (Phase 2) |
+| FR-12 | Save 10s blurred evidence clip (5s pre, 5s post) | `src/sentinel/evidence.py` | `tests/test_evidence.py` | Verified (Phase 3) |
 | FR-13 | Live dashboard view, feed, counts, hourly | `dashboard/` | Vitest + Playwright | Phase 5 |
 | FR-14 | Offline evaluation harness (precision/recall/lat)| `eval/evaluate.py` | `tests/test_eval.py` | Phase 6 |
 | FR-15 | FP16 vs INT8 speed, power, accuracy comparison | `tools/engine_report.py`, `reports/` | `tests/test_engine_report.py` | Phase 7 |
@@ -24,7 +24,7 @@ This document maps every Functional Requirement (FR-x) and Acceptance Criterion 
 | AC-1 | 10 minutes live run on USB camera without crash | System soak / live | `HUMAN_TODO.md` §3 | Pending HW |
 | AC-2 | Person w/o helmet -> 1 incident in 3s; with -> 0 | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
 | AC-3 | Restricted polygon -> 1 incident; re-entry -> 2 | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
-| AC-4 | No stored clip contains legible face | `src/sentinel/evidence.py`, `tools/privacy_audit.py` | `tests/test_evidence.py` | Phase 3 |
+| AC-4 | No stored clip contains legible face | `src/sentinel/evidence.py`, `tools/privacy_audit.py` | `tests/test_evidence.py` | Verified (Phase 3) |
 | AC-5 | >= 85% recall, 80% precision on held-out clip | `eval/evaluate.py` | `eval/evaluate.py` run | Phase 6 |
 | AC-6 | INT8 faster than FP16 with quantified accuracy | `tools/engine_report.py` | Report check | Phase 7 |
 | AC-7 | Dashboard displays incident within 1s of MQTT | `dashboard/`, `src/sentinel/api.py` | Playwright test | Phase 5 |

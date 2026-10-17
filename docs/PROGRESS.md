@@ -52,3 +52,20 @@
   - Code hygiene: `ruff` and `mypy` clean across all 13 source files.
 - **What is pending**:
   - Phase 3: Evidence writer with ring buffer and privacy verification (`evidence.py`, `tools/privacy_audit.py`).
+
+---
+
+### 2026-10-17: Phase 3 - Evidence & Privacy Completed
+- **What was done**:
+  - Implemented `src/sentinel/evidence.py`: Thread-safe `RingBuffer` holding `pre_seconds` frames; asynchronous `EvidenceWriter` with `ThreadPoolExecutor` worker pool saving 10s MP4 evidence clips (`evidence/YYYY-MM-DD/<incident_id>.mp4`) and high-contrast JPEG thumbnails (`.jpg`).
+  - Strict Privacy Policy Enforcement: Hard rule enforced at initialization — `EvidenceWriter` refuses to start or persist any frames if `privacy.require_blurred_source` is True and the stream is not certified blurred (`PrivacyViolationError`).
+  - Implemented `tools/privacy_audit.py`: Automated scanning tool that inspects all saved MP4 clips and thumbnails using dual face-detection and skin/sharpness gradient texture analysis; fails with exit code 1 if any legible face is found.
+  - Integrated `make test-privacy` target in `Makefile`.
+  - Authored tests in `tests/test_evidence.py` verifying privacy enforcement, ring buffer rollover, asynchronous clip and thumbnail creation, and privacy audit passing.
+- **What is verified**:
+  - Functional Requirement FR-12 (Save 10s blurred evidence clip: 5s pre, 5s post).
+  - Acceptance Criterion AC-4 (No stored clip contains legible face; verified via `tools/privacy_audit.py`).
+  - Test coverage: 42 passed tests, 86% total coverage across `src/sentinel`.
+  - Code hygiene: `ruff` and `mypy` pass with 0 errors across all 13 source files.
+- **What is pending**:
+  - Phase 4: FastAPI REST & WebSocket service (`src/sentinel/api.py`).
