@@ -172,5 +172,24 @@
 - **What is pending**:
   - Phase 8: Demo Hardening (`scripts/run_demo.sh`, soak testing, `demo/` fixtures, and `demo/CHECKLIST.md`).
 
+---
+
+### 2026-10-17: Phase 8 - Demo Hardening Completed
+- **What was done**:
+  - Enhanced `scripts/run_demo.sh`: Robust production runner supervising Mosquitto MQTT broker, FastAPI REST/WebSocket backend, React dashboard dev server, and 25 FPS scenario simulator.
+    - Added flag handling: `--sim`, `--pipegen`, `--file <path>`, `--port <num>`, `--dash-port <num>`.
+    - Added process group signal trap (`SIGINT`, `SIGTERM`, `EXIT`) ensuring zero orphaned background processes on exit.
+    - Added readiness probes waiting for `/api/health` before launching frontends.
+  - Implemented `tools/soak_test.py`: Continuous sustained stream stress tester verifying bounded memory consumption (RSS delta < 15 MB) and track purging across 1,000 frames.
+  - Authored automated soak test in `tests/test_soak.py` verifying zero memory leaks and sustained throughput (> 25 FPS).
+  - Authored `demo/CHECKLIST.md`: Step-by-step hackathon judge presentation script covering pre-flight sanity checks, one-click demo launch, live spatial zones & state changes, privacy-blurred evidence inspection, zone editor hot-reloading, and PipeGen INT8 acceleration metrics.
+- **What is verified**:
+  - Soak test: processed 1,000 frames with memory delta under 1 MB (0.73 MB RSS delta) and zero track accumulation leaks.
+  - Test suite: 58 Python unit tests + 11 Dashboard component tests = 69 total passing tests.
+  - Code hygiene: `make lint` clean across all backend files.
+- **What is pending**:
+  - Phase 9: Submission Pack (`tools/make_submission.py`, `SUBMISSION.md`, README quickstart).
+
+
 
 

@@ -21,7 +21,7 @@ This document maps every Functional Requirement (FR-x) and Acceptance Criterion 
 | FR-15 | FP16 vs INT8 speed, power, accuracy comparison | `tools/engine_report.py`, `reports/` | `tests/test_engine_report.py` | Verified (Phase 7) |
 | FR-16 | Custom PPE detector with Edge MLOps parity | `models/` | `HUMAN_TODO.md` §4 | Pending HW |
 | FR-17 | Telegram / webhook forwarding for HIGH incidents | `src/sentinel/notifications.py` | `tests/test_notifications.py` | Optional |
-| AC-1 | 10 minutes live run on USB camera without crash | System soak / live | `HUMAN_TODO.md` §3 | Pending HW |
+| AC-1 | 10 minutes live run on USB camera without crash | `tools/soak_test.py`, `tests/test_soak.py` | Soak verified (<1MB delta) / HW check pending |
 | AC-2 | Person w/o helmet -> 1 incident in 3s; with -> 0 | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
 | AC-3 | Restricted polygon -> 1 incident; re-entry -> 2 | `src/sentinel/rules.py` | `tests/test_rules.py` | Verified (Phase 1) |
 | AC-4 | No stored clip contains legible face | `src/sentinel/evidence.py`, `tools/privacy_audit.py` | `tests/test_evidence.py` | Verified (Phase 3) |
