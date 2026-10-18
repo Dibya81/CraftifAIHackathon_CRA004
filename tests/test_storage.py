@@ -176,3 +176,73 @@ def test_ack_and_audit_notes(tmp_path: Path):
     assert updated is not None
     assert len(updated.notes) == 2
     assert updated.notes[1]["author"] == "supervisor-bob"
+
+
+def test_hash_chain_tamper_attacks(tmp_path: Path):
+    """Test cryptographic resilience against edit, delete, reorder, and truncate attacks."""
+    import json
+
+    log_file = tmp_path / "chain_test.jsonl"
+    audit_log = JSONLAuditLog(log_file)
+
+    incidents = [
+        Incident.create(
+            incident_type="NO_HELMET",
+            severity="MEDIUM",
+            track_id=i,
+            camera_id="cam-01",
+            confidence=0.9,
+            duration_s=2.0,
+        )
+        for i in range(1, 5)
+    ]
+    for inc in incidents:
+        audit_log.record(inc)
+
+    # 1. Clean verification
+    valid, err = audit_log.verify_chain()
+    assert valid is True
+    assert err is None
+
+    original_lines = log_file.read_text(encoding="utf-8").splitlines()
+
+    # 2. Edit Attack: modify confidence in line 2
+    tampered_lines = list(original_lines)
+    item = json.loads(tampered_lines[1])
+    item["confidence"] = 0.50
+    tampered_lines[1] = json.dumps(item)
+    log_file.write_text("\n".join(tampered_lines) + "\n", encoding="utf-8")
+    valid, err = audit_log.verify_chain()
+    assert valid is False
+    assert "content modified" in err or "chain broken" in err
+
+    # 3. Delete Attack: remove line 2
+    tampered_lines = [original_lines[0], original_lines[2], original_lines[3]]
+    log_file.write_text("\n".join(tampered_lines) + "\n", encoding="utf-8")
+    valid, err = audit_log.verify_chain()
+    assert valid is False
+    assert "chain broken" in err
+
+    # 4. Reorder Attack: swap line 1 and line 2
+    tampered_lines = [original_lines[1], original_lines[0], original_lines[2], original_lines[3]]
+    log_file.write_text("\n".join(tampered_lines) + "\n", encoding="utf-8")
+    valid, err = audit_log.verify_chain()
+    assert valid is False
+    assert "chain broken" in err or "content modified" in err
+
+    # 5. Truncate Attack: corrupt the last line
+    tampered_lines = list(original_lines)
+    tampered_lines[-1] = tampered_lines[-1][:25]
+    log_file.write_text("\n".join(tampered_lines) + "\n", encoding="utf-8")
+    valid, err = audit_log.verify_chain()
+    assert valid is False
+    assert "JSON parse error" in err or "chain broken" in err
+
+
+def test_committed_sample_chain_integrity():
+    """Verify that committed samples/incidents_sample.jsonl is intact and verified."""
+    sample_file = Path("samples/incidents_sample.jsonl")
+    assert sample_file.exists(), "samples/incidents_sample.jsonl must exist in repository."
+    audit_log = JSONLAuditLog(sample_file)
+    valid, err = audit_log.verify_chain()
+    assert valid is True, f"Committed sample chain is broken: {err}"

@@ -276,9 +276,12 @@ def _evaluate_debounced_rule(
         rule_state.last_raised_ts = current_ts
         explanation = {
             "rule": incident_type,
+            "thresholds": {"min_duration_s": min_duration_s},
             "threshold": min_duration_s,
             "frames_window": len(rule_state.accumulated_confs),
             "confidences": [round(c, 3) for c in rule_state.accumulated_confs[-10:]],
+            "zone": zone_id,
+            "timer_values": {"elapsed_s": round(elapsed_s, 2), "threshold_s": min_duration_s},
             "elapsed_s": round(elapsed_s, 2),
         }
         return Incident.create(
@@ -317,10 +320,12 @@ def _evaluate_zone_intrusion(
 
     explanation = {
         "rule": "ZONE_INTRUSION",
+        "thresholds": {"min_duration_s": 0.0},
         "threshold": 0.0,
         "frames_window": 1,
         "confidences": [round(conf, 3)],
         "zone": zone_id,
+        "timer_values": {"elapsed_s": 0.0, "threshold_s": 0.0},
     }
 
     return Incident.create(
@@ -355,10 +360,12 @@ def _evaluate_danger_dwell(
 
     explanation = {
         "rule": "DANGER_DWELL",
+        "thresholds": {"dwell_duration_s": dwell_duration},
         "threshold": dwell_duration,
         "frames_window": len(rule_state.accumulated_confs),
         "confidences": [round(c, 3) for c in rule_state.accumulated_confs[-10:]],
         "zone": zone_id,
+        "timer_values": {"dwell_duration_s": round(dwell_duration, 2), "threshold_s": dwell_duration},
         "dwell_duration_s": round(dwell_duration, 2),
     }
 

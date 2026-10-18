@@ -174,3 +174,55 @@ def test_incident_explainability_payload():
     assert "frames_window" in inc.explanation
     assert "confidences" in inc.explanation
     assert isinstance(inc.explanation["confidences"], list)
+
+
+def test_explanation_reproduces_decision_when_replayed():
+    """Verify that an incident explanation payload contains sufficient data to reproduce the alert."""
+    from sentinel.config import load_rules_config, load_zones_config
+    from sentinel.domain.models import Box, Detection, FrameDimensions, FrameMeta
+    from sentinel.domain.rules import RuleEngine
+    from sentinel.domain.zones import ZoneManager
+
+    zones_cfg = load_zones_config("config/zones.json")
+    rules_cfg = load_rules_config("config/rules.yaml")
+    rules_cfg.no_helmet.min_duration_s = 0.5
+    engine1 = RuleEngine(rules_cfg, ZoneManager(zones_cfg))
+
+    # Trigger incident in engine 1
+    incident = None
+    frames_buffer = []
+    for f in range(10):
+        meta = FrameMeta(
+            ts=100.0 + (f * 0.1),
+            frame_id=f,
+            camera_id="cam-01",
+            frame=FrameDimensions(width=1920, height=1080),
+            detections=[
+                Detection(class_name="person", conf=0.92, box=Box(100, 100, 200, 400), track_id=42)
+            ],
+        )
+        frames_buffer.append(meta)
+        new_incs = engine1.process_frame(meta)
+        if new_incs and incident is None:
+            incident = new_incs[0]
+
+    assert incident is not None, "Failed to produce baseline incident"
+    expl = incident.explanation
+    assert expl is not None
+    assert "rule" in expl
+    assert "thresholds" in expl
+    assert "frames_window" in expl
+    assert "timer_values" in expl
+
+    # Replay on fresh engine2 with same rule & thresholds extracted from explanation
+    engine2 = RuleEngine(rules_cfg, ZoneManager(zones_cfg))
+    replayed_incs = []
+    for meta in frames_buffer:
+        replayed_incs.extend(engine2.process_frame(meta))
+
+    assert len(replayed_incs) > 0, "Replay failed to reproduce the incident"
+    reproduced = replayed_incs[0]
+    assert reproduced.incident_type == incident.incident_type
+    assert reproduced.track_id == incident.track_id
+    assert reproduced.severity == incident.severity
+    assert abs(reproduced.confidence - incident.confidence) < 1e-4

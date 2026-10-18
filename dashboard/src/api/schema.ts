@@ -19,6 +19,18 @@ export const IncidentNoteSchema = z.object({
 });
 export type IncidentNote = z.infer<typeof IncidentNoteSchema>;
 
+export const IncidentExplanationSchema = z.object({
+  rule: z.string().optional(),
+  thresholds: z.record(z.string(), z.any()).optional(),
+  threshold: z.number().optional(),
+  frames_window: z.number().optional(),
+  confidences: z.array(z.number()).optional(),
+  zone: z.string().nullable().optional(),
+  timer_values: z.record(z.string(), z.any()).optional(),
+  elapsed_s: z.number().optional(),
+}).passthrough();
+export type IncidentExplanation = z.infer<typeof IncidentExplanationSchema>;
+
 export const IncidentSchema = z.object({
   incident_id: z.string(),
   timestamp: z.string(),
@@ -36,6 +48,7 @@ export const IncidentSchema = z.object({
   acked_by: z.string().nullable().optional(),
   notes: z.array(IncidentNoteSchema).default([]),
   evidence_status: EvidenceStatusSchema.default("pending"),
+  explanation: IncidentExplanationSchema.nullable().optional(),
 });
 export type Incident = z.infer<typeof IncidentSchema>;
 

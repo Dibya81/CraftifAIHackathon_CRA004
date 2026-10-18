@@ -302,6 +302,64 @@ export const IncidentDetailDrawer: React.FC<IncidentDetailDrawerProps> = ({
             </div>
           </div>
 
+          {/* Explainability: Why It Fired (Decision Timeline) */}
+          {incident.explanation && (
+            <div
+              style={{
+                padding: "14px 16px",
+                backgroundColor: "var(--surface)",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--text)" }}>
+                  Why It Fired (Decision Timeline)
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                  {incident.explanation.frames_window || 0} frames window
+                </span>
+              </div>
+
+              <div style={{ fontSize: "12px", color: "var(--text-muted)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                <div>Rule: <span style={{ color: "var(--text)", fontWeight: 500 }}>{incident.explanation.rule || incident.type}</span></div>
+                <div>Zone: <span style={{ color: "var(--text)", fontWeight: 500 }}>{incident.explanation.zone || incident.zone || "N/A"}</span></div>
+                <div>Threshold: <span style={{ color: "var(--text)", fontWeight: 500 }}>{incident.explanation.threshold !== undefined ? `${incident.explanation.threshold}s` : "0.0s"}</span></div>
+                <div>Elapsed: <span style={{ color: "var(--text)", fontWeight: 500 }}>{incident.explanation.elapsed_s !== undefined ? `${incident.explanation.elapsed_s}s` : `${incident.duration_s.toFixed(1)}s`}</span></div>
+              </div>
+
+              {/* Per-frame confidence timeline bar */}
+              {incident.explanation.confidences && incident.explanation.confidences.length > 0 && (
+                <div style={{ marginTop: "4px" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px", display: "flex", justifyContent: "space-between" }}>
+                    <span>Per-Frame Confidences (last {incident.explanation.confidences.length} frames)</span>
+                    <span style={{ fontFamily: "var(--font-mono)" }}>
+                      {(Math.min(...incident.explanation.confidences) * 100).toFixed(0)}% - {(Math.max(...incident.explanation.confidences) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "flex-end", gap: "4px", height: "36px", padding: "2px 0" }}>
+                    {incident.explanation.confidences.map((c: number, idx: number) => (
+                      <div
+                        key={idx}
+                        title={`Frame ${idx + 1}: ${(c * 100).toFixed(0)}%`}
+                        style={{
+                          flex: 1,
+                          height: `${Math.max(15, c * 100)}%`,
+                          backgroundColor: c > 0.8 ? "var(--brand-primary)" : "var(--warn)",
+                          borderRadius: "2px",
+                          transition: "height 0.2s ease",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Metadata Grid */}
           <div
             style={{

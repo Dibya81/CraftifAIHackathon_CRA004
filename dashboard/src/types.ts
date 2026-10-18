@@ -28,6 +28,17 @@ export interface Incident {
     created_at: string;
   }>;
   evidence_status?: "pending" | "ready" | "partial" | "failed";
+  explanation?: {
+    rule?: string;
+    thresholds?: Record<string, any>;
+    threshold?: number;
+    frames_window?: number;
+    confidences?: number[];
+    zone?: string | null;
+    timer_values?: Record<string, any>;
+    elapsed_s?: number;
+    [key: string]: any;
+  } | null;
 }
 
 export interface ZoneDefinition {

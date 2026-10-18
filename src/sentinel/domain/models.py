@@ -241,6 +241,10 @@ class Incident:
             hash=hash,
         )
 
+    @property
+    def incident_type(self) -> str:
+        return self.type
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 

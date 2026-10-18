@@ -302,13 +302,16 @@ def gc(
             except Exception as e:
                 typer.echo(f"Error purging {clip}: {e}")
 
-    typer.echo(f"🧹 GC complete: purged {purged_count} evidence files older than {days} days.")
+    typer.echo(f"[GC] GC complete: purged {purged_count} evidence files older than {days} days.")
 
 
 @app.command(name="verify-log")
 def verify_log(
     path: str = typer.Option(
         "logs/incidents.jsonl", "--path", "-p", help="Path to JSONL incidents log"
+    ),
+    db: Optional[str] = typer.Option(
+        None, "--db", "-d", help="Optional SQLite database path to cross-check incident parity"
     ),
 ):
     """Verify cryptographic hash chain integrity of append-only incidents JSONL log."""
@@ -321,15 +324,51 @@ def verify_log(
     valid, err = audit_log.verify_chain()
     if not valid:
         typer.secho(
-            "❌ TAMPER DETECTED: Log integrity chain verification failed!",
+            "[FAIL] TAMPER DETECTED: Log integrity chain verification failed!",
             fg=typer.colors.RED,
             bold=True,
         )
         typer.secho(f"   Details: {err}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
+    target_db = Path(db) if db else (log_file.parent / "sentinel.db")
+    if target_db.exists():
+        import sqlite3
+
+        try:
+            conn = sqlite3.connect(str(target_db))
+            conn.row_factory = sqlite3.Row
+            db_ids = {
+                row["incident_id"]
+                for row in conn.execute("SELECT incident_id FROM incidents").fetchall()
+            }
+            conn.close()
+
+            jsonl_incidents = audit_log.read_all()
+            jsonl_ids = {inc.incident_id for inc in jsonl_incidents}
+
+            missing_in_db = jsonl_ids - db_ids
+            missing_in_jsonl = db_ids - jsonl_ids
+            if missing_in_db or missing_in_jsonl:
+                typer.secho(
+                    "[FAIL] DATABASE CROSS-CHECK FAILED: Discrepancy between JSONL log and SQLite database!",
+                    fg=typer.colors.RED,
+                    bold=True,
+                )
+                if missing_in_db:
+                    typer.secho(f"   In JSONL but missing in DB: {missing_in_db}", fg=typer.colors.RED)
+                if missing_in_jsonl:
+                    typer.secho(f"   In DB but missing in JSONL: {missing_in_jsonl}", fg=typer.colors.RED)
+                raise typer.Exit(code=1)
+            typer.secho(
+                f"[PASS] Database cross-check passed: {len(jsonl_ids)} incidents verified in parity with {target_db}",
+                fg=typer.colors.GREEN,
+            )
+        except sqlite3.Error as e:
+            typer.secho(f"[WARN] Database cross-check encountered error: {e}", fg=typer.colors.YELLOW)
+
     typer.secho(
-        f"✅ Log integrity chain verified: 0 tampering detected across {log_file}",
+        f"[PASS] Log integrity chain verified: 0 tampering detected across {log_file}",
         fg=typer.colors.GREEN,
         bold=True,
     )

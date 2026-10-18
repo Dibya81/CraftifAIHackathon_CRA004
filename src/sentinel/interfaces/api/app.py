@@ -444,15 +444,22 @@ def create_app(
         }
 
     @router.get("/system/log-integrity", include_in_schema=False)
-    def get_log_integrity() -> Dict[str, Any]:
-        log_path = Path(cfg.paths.incidents_log)
+    def get_log_integrity(path: Optional[str] = None) -> Dict[str, Any]:
+        log_path = Path(path) if path else Path(cfg.paths.incidents_log)
         audit_log = JSONLAuditLog(log_path)
         valid, err = audit_log.verify_chain()
+        count = 0
+        if log_path.exists():
+            with open(log_path, "r", encoding="utf-8") as f:
+                count = sum(1 for line in f if line.strip())
+        badge = f"Log chain intact: {count} incidents" if valid else f"Chain broken: {err}"
         return {
             "status": "PASS" if valid else "FAIL",
             "log_path": str(log_path),
             "valid": valid,
             "error": err,
+            "count": count,
+            "badge": badge,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 

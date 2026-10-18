@@ -16,6 +16,7 @@ import {
   AlertCircle,
   XCircle,
   ChevronDown,
+  Lock,
 } from "lucide-react";
 import { HealthState, ComponentHealth } from "../types";
 import { StatusDot } from "../design/primitives";
@@ -57,6 +58,29 @@ export const HealthBar: React.FC<HealthBarProps> = ({
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  const [logIntegrity, setLogIntegrity] = useState<{ status: string; badge: string; count: number } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchIntegrity = async () => {
+      try {
+        const res = await fetch("/api/system/log-integrity");
+        if (res.ok && mounted) {
+          const data = await res.json();
+          setLogIntegrity(data);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    fetchIntegrity();
+    const interval = setInterval(fetchIntegrity, 10000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Close component popover on outside click
@@ -261,6 +285,31 @@ export const HealthBar: React.FC<HealthBarProps> = ({
               <Radio size={12} strokeWidth={2} style={{ color: isMqttDown ? "var(--warn)" : "var(--ok)" }} />
               <span>MQTT {isMqttDown ? "offline" : "ok"}</span>
             </span>
+
+            {logIntegrity && (
+              <>
+                <span>&middot;</span>
+                <span
+                  data-testid="log-integrity-badge"
+                  title={logIntegrity.badge}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "1px 6px",
+                    backgroundColor: logIntegrity.status === "PASS" ? "rgba(46, 160, 67, 0.15)" : "rgba(248, 81, 73, 0.15)",
+                    border: `1px solid ${logIntegrity.status === "PASS" ? "var(--ok)" : "var(--danger)"}`,
+                    borderRadius: "4px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    color: logIntegrity.status === "PASS" ? "var(--ok)" : "var(--danger)",
+                  }}
+                >
+                  <Lock size={11} strokeWidth={2} />
+                  <span>{logIntegrity.badge}</span>
+                </span>
+              </>
+            )}
           </div>
         </div>
 
