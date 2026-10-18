@@ -69,6 +69,62 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def parse_pipegen_speed_report(report_path: str | Path) -> Dict[str, Any]:
+    """Parse raw PipeGen speed benchmark JSON report."""
+    p = Path(report_path)
+    if not p.is_absolute():
+        p = REPO_ROOT / p
+    if not p.exists():
+        raise FileNotFoundError(f"PipeGen speed report not found: {p}")
+    with open(p, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return {
+        "device": data.get("device", "Unknown"),
+        "precision": data.get("precision", "INT8"),
+        "framework": data.get("framework", "TensorRT INT8"),
+        "fps": float(data.get("fps", 0.0)),
+        "inference_latency_ms": float(data.get("inference_latency_ms", 0.0)),
+        "end_to_end_latency_ms": float(data.get("end_to_end_latency_ms", 0.0)),
+        "vram_mb": float(data.get("vram_mb", 0.0)),
+        "map_50": float(data.get("map_50", 0.0)),
+    }
+
+
+def parse_power_log(log_path: str | Path) -> Dict[str, float]:
+    """Parse nvidia-smi dmon or tegrastats raw telemetry log to extract mean GPU power in Watts."""
+    p = Path(log_path)
+    if not p.is_absolute():
+        p = REPO_ROOT / p
+    if not p.exists():
+        raise FileNotFoundError(f"Power log not found: {p}")
+
+    powers: List[float] = []
+    utils: List[float] = []
+
+    with open(p, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                try:
+                    pwr = float(parts[1])
+                    powers.append(pwr)
+                except ValueError:
+                    pass
+            if len(parts) >= 5:
+                try:
+                    sm = float(parts[4])
+                    utils.append(sm)
+                except ValueError:
+                    pass
+
+    mean_pwr = round(sum(powers) / len(powers), 2) if powers else 0.0
+    mean_util = round(sum(utils) / len(utils), 1) if utils else 0.0
+    return {"mean_power_w": mean_pwr, "mean_util_pct": mean_util, "sample_count": len(powers)}
+
+
 def load_engine_inputs(yaml_path: str | Path) -> Dict[str, Any]:
     p = Path(yaml_path)
     if not p.is_absolute():

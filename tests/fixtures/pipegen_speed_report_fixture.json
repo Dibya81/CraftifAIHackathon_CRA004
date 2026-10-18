@@ -1,0 +1,13 @@
+{
+  "device": "NVIDIA Jetson Orin Nano",
+  "engine": "pipegen_ppe_int8.engine",
+  "precision": "INT8",
+  "framework": "TensorRT INT8",
+  "batch_size": 1,
+  "iterations": 500,
+  "fps": 28.4,
+  "inference_latency_ms": 35.2,
+  "end_to_end_latency_ms": 38.6,
+  "vram_mb": 210.5,
+  "map_50": 0.812
+}

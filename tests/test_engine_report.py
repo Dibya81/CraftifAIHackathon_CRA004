@@ -141,3 +141,32 @@ def test_generate_engine_reports_pending(tmp_path: Path):
         md_text = f.read()
     assert "Status**: PENDING" in md_text
     assert "ENGINE-FPS-INT8" in md_text
+
+
+def test_parse_pipegen_speed_report_fixture():
+    """Verify parsing a synthetic PipeGen speed report fixture."""
+    from tools.engine_report import parse_pipegen_speed_report
+
+    fixture_path = Path("tests/fixtures/pipegen_speed_report_fixture.json")
+    assert fixture_path.exists(), "Synthetic PipeGen speed report fixture must exist"
+
+    data = parse_pipegen_speed_report(fixture_path)
+    assert data["precision"] == "INT8"
+    assert data["framework"] == "TensorRT INT8"
+    assert data["fps"] == 28.4
+    assert data["inference_latency_ms"] == 35.2
+    assert data["vram_mb"] == 210.5
+    assert data["map_50"] == 0.812
+
+
+def test_parse_power_log_fixture():
+    """Verify parsing a synthetic GPU power telemetry log fixture."""
+    from tools.engine_report import parse_power_log
+
+    fixture_path = Path("tests/fixtures/power_log_fixture.log")
+    assert fixture_path.exists(), "Synthetic power log fixture must exist"
+
+    telemetry = parse_power_log(fixture_path)
+    assert telemetry["sample_count"] == 5
+    assert 12.0 <= telemetry["mean_power_w"] <= 14.0
+    assert 65.0 <= telemetry["mean_util_pct"] <= 75.0
