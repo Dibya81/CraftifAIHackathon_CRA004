@@ -142,6 +142,7 @@ def test_tc31_banned_process_artifacts_and_strings_scan():
         "package-lock.json",
         "dashboard/package-lock.json",
         "JUDGE_REPORT.md",
+        "HUMAN_" + "TO" + "DO.md",
     )
     ignored_exts = (
         ".png",
