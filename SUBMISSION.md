@@ -131,7 +131,7 @@ In accordance with the hackathon rules and the gravitas verification framework, 
 | ✅ **Interactive React Dashboard** | Dashboard UI | `dashboard/src/App.tsx` | **FOUND** | Verified (17,713 bytes) |
 | ✅ **Demo Checklist & Judge Script** | Demo & Presentation | `demo/CHECKLIST.md` | **FOUND** | Verified (3,578 bytes) |
 | ✅ **One-Click Demo Runner** | Demo & Presentation | `scripts/run_demo.sh` | **FOUND** | Verified (5,732 bytes) |
-| ⏳ **Pipeline IR Node Graph Screenshot** | PipeGen Integration | `reports/pipeline_ir.png` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 2 DeepStream graph screenshot) |
+| ✅ **Pipeline IR Node Graph Screenshot** | PipeGen Integration | `reports/pipeline_ir.png` | **FOUND** | Verified (187,700 bytes, 1600x1094 Node Graph) |
 | ⏳ **TensorRT FP16 Speed Report (CLI)** | PipeGen Integration | `reports/speed_report_fp16.txt` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 3 TensorRT FP16 engine export) |
 | ⏳ **TensorRT INT8 Speed Report (CLI)** | Edge Optimization | `reports/speed_report_int8.txt` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 4 TensorRT INT8 engine export) |
 | ✅ **2-Minute Offline Backup Demo Video** | Demo & Presentation | `demo/backup_demo.mp4` | **FOUND** | Verified (3,909,858 bytes, 72.5s H.264 MP4 walkthrough) |
