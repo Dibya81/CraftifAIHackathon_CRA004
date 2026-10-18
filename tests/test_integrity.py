@@ -12,10 +12,18 @@ from sentinel.config import load_sentinel_config
 
 
 @pytest.mark.tc("TC-04")
+@pytest.mark.hardware
 def test_tc04_pipegen_export_hash_manifest():
     """TC-04: Verify SHA-256 hash manifest of pipegen/export/ to prove untouched export."""
     export_dir = Path("pipegen/export")
     assert export_dir.exists(), "pipegen/export directory must exist."
+
+    real_files = [
+        f for f in export_dir.iterdir()
+        if f.is_file() and f.name not in {".gitkeep", ".manifest.sha256"}
+    ]
+    if not real_files:
+        pytest.skip("PENDING real PipeGen export: pipegen/export contains only .gitkeep")
 
     manifest_file = export_dir / ".manifest.sha256"
     assert manifest_file.exists(), ".manifest.sha256 file must exist in pipegen/export."
@@ -40,6 +48,16 @@ def test_tc04_pipegen_export_hash_manifest():
         assert actual_hash == expected_hash, (
             f"Hash mismatch for {rel_path}: {actual_hash} != {expected_hash}"
         )
+
+
+def test_pipegen_export_integrity_check_fails_on_empty_export():
+    """Verify integrity check fails loudly when pipegen/export contains only .gitkeep."""
+    from sentinel.interfaces.cli.doctor import check_pipegen_export_hash
+
+    ok, msg, fix = check_pipegen_export_hash()
+    assert not ok, "Integrity check must not pass when pipegen/export contains only .gitkeep"
+    assert "only .gitkeep" in msg or "PENDING" in msg
+    assert fix, "Actionable recommendation must be provided"
 
 
 @pytest.mark.tc("TC-05")

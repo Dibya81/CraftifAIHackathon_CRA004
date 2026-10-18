@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PYTHON_EXEC="$SCRIPT_DIR/.venv/bin/python"
-if [ ! -f "$PYTHON_EXEC" ]; then
-    PYTHON_EXEC="python3"
-fi
-PYTHONPATH="$SCRIPT_DIR/src:$SCRIPT_DIR" exec "$PYTHON_EXEC" -c "from sentinel.interfaces.cli.main import app; app()" "$@"

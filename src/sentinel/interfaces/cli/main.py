@@ -26,22 +26,22 @@ app = typer.Typer(
 @app.command()
 def doctor():
     """Run diagnostic checks on dependencies, GPU, ports, broker, and export manifest."""
-    typer.echo("🔍 Running SiteSentinel System Diagnostics...\n")
+    typer.echo("Running SiteSentinel System Diagnostics...\n")
     report = run_diagnostics()
 
     for item in report["checks"]:
         symbol = (
-            "✅ [PASS]"
+            "[PASS]"
             if item["ok"]
             else (
-                "⚠️  [WARN]"
+                "[WARN]"
                 if "GPU" in item["check"] or "Mosquitto" in item["check"]
-                else "❌ [FAIL]"
+                else "[FAIL]"
             )
         )
         typer.echo(f"{symbol} {item['check']}: {item['message']}")
         if not item["ok"] and item["fix"]:
-            typer.echo(f"   💡 Recommendation: {item['fix']}")
+            typer.echo(f"   Recommendation: {item['fix']}")
 
     typer.echo("")
     if report["status"] == "ok":
@@ -60,7 +60,7 @@ def api(
     reload: bool = typer.Option(False, help="Enable auto-reload for development"),
 ):
     """Start SiteSentinel REST, WebSockets, and MJPEG relay server."""
-    typer.echo(f"🚀 Starting SiteSentinel API on http://{host}:{port}")
+    typer.echo(f"Starting SiteSentinel API on http://{host}:{port}")
     uvicorn.run(
         "sentinel.interfaces.api.app:create_app", host=host, port=port, factory=True, reload=reload
     )
@@ -170,7 +170,7 @@ def simulate(
     """Stream simulated PipeGen detections to MQTT broker or local log."""
     from tools.simulate import main as sim_main
 
-    typer.echo(f"🎬 Streaming {frames} frames at {fps} FPS to {host}:{port}...")
+    typer.echo(f"Streaming {frames} frames at {fps} FPS to {host}:{port}...")
     sys.argv = [
         "simulate.py",
         "--frames",
@@ -198,7 +198,7 @@ def eval(
     """Run offline evaluation against ground-truth incident intervals."""
     from eval.evaluate import main as eval_main
 
-    typer.echo(f"📊 Running evaluation on {detections} vs {ground_truth}...")
+    typer.echo(f"Running evaluation on {detections} vs {ground_truth}...")
     sys.argv = [
         "evaluate.py",
         "--detections",
@@ -219,7 +219,7 @@ def report(
     """Generate TensorRT FP16 vs INT8 engine performance and accuracy report."""
     from tools.engine_report import main as rep_main
 
-    typer.echo("📈 Generating Engine Comparison Report...")
+    typer.echo("Generating Engine Comparison Report...")
     sys.argv = ["engine_report.py", "--inputs", inputs, "--out-dir", out_dir]
     rep_main()
 
@@ -274,7 +274,7 @@ def export(
                     ]
                 )
 
-    typer.echo(f"✅ Exported {len(items)} incidents to {output}")
+    typer.echo(f"Exported {len(items)} incidents to {output}")
 
 
 @app.command()

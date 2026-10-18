@@ -17,7 +17,7 @@ Run `python tools/ledger.py summary` to see live counts.
 <!-- BEGIN GENERATED: STATUS_TABLE -->
 | Item | Status | Proof |
 |------|--------|-------|
-| Python test suite (85 tests) | MEASURED | [ledger: TC-COUNT](evidence/ledger.yaml) |
+| Python test suite (101 tests) | MEASURED | [ledger: TC-COUNT](evidence/ledger.yaml) |
 | Offline eval precision/recall/F1 | SIMULATED — simulator data only | [ledger: EVAL-PRECISION-SIM](evidence/ledger.yaml) |
 | Engine FPS (FP32 / FP16 / INT8) | PENDING — no hardware run | [ledger: ENGINE-FPS-*](evidence/ledger.yaml) |
 | INT8 speedup over FP16 | PENDING — no hardware run | [ledger: ENGINE-INT8-SPEEDUP](evidence/ledger.yaml) |
@@ -161,7 +161,7 @@ reports/
   simulated/           # Simulator-derived eval results (stamped SIMULATED)
 src/sentinel/          # Backend: rule engine, incident sink, API, adapters
 dashboard/             # React control room dashboard
-tests/                 # Pytest suite (87 tests, MEASURED)
+tests/                 # Pytest suite (101 tests, MEASURED)
 tools/
   ledger.py            # Verify and summarize claims ledger
   audit_claims.py      # Scan docs for banned phrases / un-ledgered numbers

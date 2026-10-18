@@ -37,6 +37,7 @@ def test_baseline_detector_inference_on_synthetic_frame():
     assert isinstance(meta.detections, list)
 
 
+@pytest.mark.real
 @pytest.mark.skipif(
     not MODEL_PATH.exists(),
     reason="Baseline ONNX weights not downloaded (run scripts/fetch_baseline_model.sh)",

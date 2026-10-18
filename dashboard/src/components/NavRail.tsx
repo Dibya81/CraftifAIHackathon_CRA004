@@ -6,6 +6,7 @@ import {
   Map,
   BarChart3,
   Cpu,
+  ShieldCheck,
   Palette,
   ChevronLeft,
   ChevronRight,
@@ -24,6 +25,7 @@ export const NavRail: React.FC = () => {
     { path: "/incidents", label: "Incidents", icon: <AlertTriangle size={17} strokeWidth={1.75} />, badge: unreadCount > 0 ? unreadCount : undefined },
     { path: "/zones", label: "Zones", icon: <Map size={17} strokeWidth={1.75} /> },
     { path: "/reports", label: "Reports", icon: <BarChart3 size={17} strokeWidth={1.75} /> },
+    { path: "/evidence", label: "Evidence", icon: <ShieldCheck size={17} strokeWidth={1.75} /> },
     { path: "/system", label: "System", icon: <Cpu size={17} strokeWidth={1.75} /> },
   ];
 

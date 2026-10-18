@@ -96,7 +96,7 @@ fi
 
 # 2. Start FastAPI Backend & WebSocket Service
 echo "▶ Starting SiteSentinel FastAPI server on port ${PORT}..."
-"${PYTHON}" -m uvicorn sentinel.api:app --host 0.0.0.0 --port "${PORT}" --log-level warning &
+"${PYTHON}" -m uvicorn sentinel.interfaces.api.app:app --host 0.0.0.0 --port "${PORT}" --log-level warning &
 BACKEND_PID=$!
 PIDS+=("${BACKEND_PID}")
 

@@ -63,6 +63,17 @@ def check_pipegen_export_hash() -> Tuple[bool, str, str]:
         return False, "Manifest file is empty", "Regenerate manifest for pipegen/export files"
 
     export_dir = Path("pipegen/export")
+    real_files = [
+        f for f in export_dir.iterdir()
+        if f.is_file() and f.name not in {".gitkeep", ".manifest.sha256"}
+    ]
+    if not real_files:
+        return (
+            False,
+            "pipegen/export contains only .gitkeep (status PENDING - no real export present)",
+            "Ingest real PipeGen export via: ./scripts/ingest_pipegen_export.sh <export_path>",
+        )
+
     for line in lines:
         expected_hash, rel_path = line.split(maxsplit=1)
         rel_path = rel_path.strip()
@@ -83,7 +94,7 @@ def check_pipegen_export_hash() -> Tuple[bool, str, str]:
                 "Do not edit pipegen/export; revert modifications",
             )
 
-    return True, f"PipeGen export intact ({len(lines)} files verified)", ""
+    return True, f"PipeGen export intact ({len(real_files)} real files verified)", ""
 
 
 def check_mosquitto_reachable() -> Tuple[bool, str, str]:

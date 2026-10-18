@@ -10,7 +10,7 @@ Anatomical Region Rules:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, List, Optional, Set, Tuple
+from typing import Any, Callable, List, Optional, Set, Tuple, Union
 
 from sentinel.domain.models import Box, Detection
 

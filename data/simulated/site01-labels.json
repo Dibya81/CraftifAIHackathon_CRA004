@@ -1,0 +1,29 @@
+{
+  "clip": "data/simulated/site01-simulated.mp4",
+  "fps": 25.0,
+  "frame_count": 500,
+  "duration_s": 20.0,
+  "violations": [
+    {
+      "type": "NO_HELMET",
+      "start_s": 2.0,
+      "end_s": 6.0,
+      "track_id": 1,
+      "zone": "press-area"
+    },
+    {
+      "type": "ZONE_INTRUSION",
+      "start_s": 8.0,
+      "end_s": 12.0,
+      "track_id": 2,
+      "zone": "crane-drop"
+    },
+    {
+      "type": "DANGER_DWELL",
+      "start_s": 13.0,
+      "end_s": 18.0,
+      "track_id": 2,
+      "zone": "crane-drop"
+    }
+  ]
+}

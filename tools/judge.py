@@ -284,7 +284,21 @@ class JudgeRunner:
         ret, out, err = self.run_command(cmd)
 
         passed = (ret == 0)
-        self.stages.append(JudgeStageResult("Test Suite Execution", passed, time.time() - t0, "Pytest suite executed."))
+
+        # Collect marker counts
+        marker_counts = {}
+        for m in ["sim", "real", "hardware"]:
+            _, m_out, _ = self.run_command([self.python_exec, "-m", "pytest", "-m", m, "--collect-only", "-q"])
+            marker_counts[m] = len([line for line in m_out.splitlines() if "::" in line])
+
+        # Overall collected tests count
+        _, all_out, _ = self.run_command([self.python_exec, "-m", "pytest", "--collect-only", "-q"])
+        self.collected_test_count = len([line for line in all_out.splitlines() if "::" in line])
+
+        marker_str = f"sim={marker_counts['sim']}, real={marker_counts['real']}, hardware={marker_counts['hardware']}"
+        print(f"   Marker counts: {marker_str} (Total: {self.collected_test_count})")
+
+        self.stages.append(JudgeStageResult("Test Suite Execution", passed, time.time() - t0, f"Pytest suite executed ({self.collected_test_count} tests, {marker_str})."))
 
         # Load test cases
         tc_spec_file = self.root / "tests" / "test_cases.yaml"
@@ -368,7 +382,7 @@ class JudgeRunner:
             "",
             "| Item / Claim | Measured on this machine | Simulated / synthetic | Pending hardware run | Status | Source / Proof |",
             "|---|---|---|---|---|---|",
-            "| Python Test Suite (85 tests) | YES | No | No | MEASURED | `pytest` run |",
+            f"| Python Test Suite ({getattr(self, 'collected_test_count', 101)} tests) | YES | No | No | MEASURED | `pytest` run |",
             "| Static Typing & Linting | YES | No | No | MEASURED | `mypy` + `ruff` |",
             "| Claims Ledger Verification | YES | No | No | MEASURED | `evidence/ledger.yaml` |",
             "| Documentation Claims Audit | YES | No | No | MEASURED | `tools/audit_claims.py` |",

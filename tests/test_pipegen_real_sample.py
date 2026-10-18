@@ -9,6 +9,7 @@ import pytest
 SAMPLE_FILE = Path("tests/fixtures/pipegen_real_sample/sample_detection.json")
 
 
+@pytest.mark.hardware
 @pytest.mark.skipif(
     not SAMPLE_FILE.exists(), reason="PENDING real PipeGen sample"
 )

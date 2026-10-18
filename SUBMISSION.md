@@ -2,10 +2,10 @@
 
 > **Hackathon:** Embedded SF (CraftifAI Physical AI) | **Track:** Track A: PipeGen | **Bonus Target:** Edge Optimization
 
-**Submission Date:** 2026-10-18 20:57:56 UTC  
+**Submission Date:** 2026-10-18 21:27:15 UTC  
 **Lead Engineer:** Dibya Bhusal  
-**Software Implementation Status:** **14/14 Core Software Deliverables Verified**  
-**Edge Hardware Verification:** **1/4 Hardware Artifacts Live** (Hardware profiling runbook in `docs/RUNBOOK.md`)
+**Software Implementation Status:** **15/15 Core Software Deliverables Verified**  
+**Edge Hardware Verification:** **0/4 Hardware Artifacts Live** (Hardware profiling runbook in `docs/RUNBOOK.md`)
 
 ---
 
@@ -133,12 +133,13 @@ In accordance with hackathon rules and the claims ledger (`evidence/ledger.yaml`
 | [FOUND] **Sample Incident Log (JSONL)** | Actionable Output | `logs/incidents.jsonl` | **FOUND** | Verified (996 bytes) |
 | [FOUND] **Privacy-Blurred Evidence Clip** | Privacy & Evidence | `evidence/sample/sample-no-helmet-001.mp4` | **FOUND** | Verified (124,062 bytes) |
 | [FOUND] **Interactive React Dashboard** | Dashboard UI | `dashboard/src/App.tsx` | **FOUND** | Verified (17,897 bytes) |
-| [FOUND] **Demo Checklist & Judge Script** | Demo & Presentation | `demo/CHECKLIST.md` | **FOUND** | Verified (3,578 bytes) |
+| [FOUND] **Demo Checklist & Judge Script** | Demo & Presentation | `demo/CHECKLIST.md` | **FOUND** | Verified (3,569 bytes) |
 | [FOUND] **One-Click Demo Runner** | Demo & Presentation | `scripts/run_demo.sh` | **FOUND** | Verified (5,747 bytes) |
+| [FOUND] **2-Minute Offline Backup Demo Video (Simulated)** | Demo & Presentation | `demo/backup_demo-simulated.mp4` | **FOUND** | Verified (3,909,858 bytes) |
 | [PENDING HW] **Pipeline IR Node Graph Screenshot** | PipeGen Integration | `evidence/pipegen/pipeline_ir.png` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 2 DeepStream graph screenshot) |
 | [PENDING HW] **TensorRT FP16 Speed Report (CLI)** | PipeGen Integration | `reports/speed_report_fp16.txt` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 3 TensorRT FP16 engine export) |
 | [PENDING HW] **TensorRT INT8 Speed Report (CLI)** | Edge Optimization | `reports/speed_report_int8.txt` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 4 TensorRT INT8 engine export) |
-| [FOUND] **2-Minute Offline Backup Demo Video** | Demo & Presentation | `demo/backup_demo.mp4` | **FOUND** | Verified (3,909,858 bytes) |
+| [PENDING HW] **Hardware Telemetry Log (tegrastats / nvidia-smi)** | Edge Optimization | `evidence/hardware/power_run.log` | **PENDING** | PENDING HARDWARE RUN (Hardware step: GPU power and temperature telemetry capture) |
 <!-- END GENERATED: SUBMISSION_DELIVERABLES -->
 
 > [!IMPORTANT]
@@ -147,6 +148,7 @@ In accordance with hackathon rules and the claims ledger (`evidence/ledger.yaml`
 > - **Pipeline IR Node Graph Screenshot:** Hardware step: Stage 2 DeepStream graph screenshot
 > - **TensorRT FP16 Speed Report (CLI):** Hardware step: Stage 3 TensorRT FP16 engine export
 > - **TensorRT INT8 Speed Report (CLI):** Hardware step: Stage 4 TensorRT INT8 engine export
+> - **Hardware Telemetry Log (tegrastats / nvidia-smi):** Hardware step: GPU power and temperature telemetry capture
 
 ## 9. 5-Minute Quickstart & Verification Commands
 

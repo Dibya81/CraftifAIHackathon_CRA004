@@ -31,7 +31,7 @@ def test_audit_deliverables_flags_pending_hardware_items():
     assert "Pipeline IR Node Graph Screenshot" in hw_names
     assert "TensorRT FP16 Speed Report (CLI)" in hw_names
     assert "TensorRT INT8 Speed Report (CLI)" in hw_names
-    assert "2-Minute Offline Backup Demo Video" in hw_names
+    assert "Hardware Telemetry Log (tegrastats / nvidia-smi)" in hw_names
 
     for a in hw_audits:
         assert a.todo_ref is not None

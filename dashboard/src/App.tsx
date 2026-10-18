@@ -16,6 +16,7 @@ import { IncidentsTable } from "./components/IncidentsTable";
 import { ZoneEditor } from "./components/ZoneEditor";
 import { ReportsView } from "./components/ReportsView";
 import { SystemView } from "./components/SystemView";
+import { EvidenceView } from "./components/EvidenceView";
 import { IncidentDetailDrawer } from "./components/IncidentDetailDrawer";
 import { DesignGallery } from "./design/DesignGallery";
 
@@ -534,6 +535,9 @@ export const App: React.FC = () => {
                 />
               }
             />
+
+            {/* Cryptographic Evidence & Claims Ledger */}
+            <Route path="/evidence" element={<EvidenceView />} />
 
             {/* System Telemetry & Edge Intelligence */}
             <Route path="/system" element={<SystemView health={health} />} />

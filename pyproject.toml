@@ -52,5 +52,8 @@ testpaths = ["tests"]
 pythonpath = ["src", "."]
 asyncio_mode = "auto"
 markers = [
-    "tc(name): Map test to Test Case ID (e.g. TC-01 to TC-30)"
+    "tc(name): Map test to Test Case ID (e.g. TC-01 to TC-30)",
+    "sim: Tests running on simulated data or synthetic pipeline",
+    "real: Tests running on real video or real detection data",
+    "hardware: Tests running on physical GPU or hardware components",
 ]

@@ -12,17 +12,17 @@ entries:
   # ─── Test suite ───────────────────────────────────────────────────────────────
   - id: TC-COUNT
     claim: "Python unit/integration test count (pytest --collect-only)"
-    value: 85
+    value: 101
     status: MEASURED
     source_file: "tests/"
     sha256: "n/a-directory"
     command: ".venv/bin/pytest --collect-only -q"
-    produced_at: "2026-10-19T00:45:08+05:30"
+    produced_at: "2026-10-19T02:57:04+05:30"
     environment:
       os: "macOS-26.5-arm64"
-      python: "3.14.2"
+      python: "3.11.15"
       gpu: "none"
-    notes: "Count from pytest --collect-only. Re-run before each submission."
+    notes: "Count from pytest --collect-only: 101 collected (99 passed, 2 skipped pending real PipeGen export/sample)."
 
   # ─── Simulator eval (SIMULATED — labels written by tools/simulate.py) ─────────
   - id: EVAL-PRECISION-SIM

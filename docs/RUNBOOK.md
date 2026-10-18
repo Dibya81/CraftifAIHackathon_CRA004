@@ -81,7 +81,7 @@ This runbook defines the exact numbered checklist with checkboxes for human team
   ```bash
   cp /path/to/screenshot.png evidence/pipegen/pipeline_ir.png
   ```
-- [ ] **Action**: Remove the pending placeholder notice:
+- [ ] **Action**: Remove the pending notice file:
   ```bash
   rm -f evidence/pipegen/pipeline_ir.png.README
   ```

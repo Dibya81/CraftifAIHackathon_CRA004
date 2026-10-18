@@ -141,6 +141,13 @@ class SubmissionCollector:
                 False,
                 None,
             ),
+            (
+                "2-Minute Offline Backup Demo Video (Simulated)",
+                "demo/backup_demo-simulated.mp4",
+                "Demo & Presentation",
+                False,
+                None,
+            ),
             # Hardware-Dependent Artifacts (Booth Inspection)
             (
                 "Pipeline IR Node Graph Screenshot",
@@ -164,11 +171,11 @@ class SubmissionCollector:
                 "Hardware step: Stage 4 TensorRT INT8 engine export",
             ),
             (
-                "2-Minute Offline Backup Demo Video",
-                "demo/backup_demo.mp4",
-                "Demo & Presentation",
+                "Hardware Telemetry Log (tegrastats / nvidia-smi)",
+                "evidence/hardware/power_run.log",
+                "Edge Optimization",
                 True,
-                "Hardware step: Record 2-minute walkthrough video",
+                "Hardware step: GPU power and temperature telemetry capture",
             ),
         ]
 

@@ -1,8 +1,11 @@
 """Unit tests for SyntheticScenarioGenerator in tools/simulate.py."""
 
+import pytest
+
 from tools.simulate import SyntheticScenarioGenerator
 
 
+@pytest.mark.sim
 def test_scenario_generation():
     scenarios = ["compliant", "no_helmet", "restricted_entry", "danger_dwell", "crowd", "flicker"]
     for sc in scenarios:
