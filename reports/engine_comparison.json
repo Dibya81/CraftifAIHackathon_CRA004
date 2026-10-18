@@ -1,57 +1,22 @@
 {
-  "timestamp": "2026-10-17T22:48:45.436536",
-  "device": "NVIDIA Jetson Orin Nano Developer Kit (8GB)",
-  "power_mode": "15W",
-  "input_resolution": [
-    1920,
-    1080
-  ],
-  "calibration_dataset": "models/calibration (500 representative frames)",
-  "provenance": "MEASURED_PROFILE",
+  "timestamp": "2026-10-18T20:43:20.234047+00:00",
+  "status": "PENDING",
+  "device": null,
+  "power_mode": null,
+  "input_resolution": null,
+  "calibration_dataset": null,
+  "provenance": "PENDING",
   "models": {
-    "fp32": {
-      "precision": "FP32",
-      "framework": "PyTorch 2.1 CUDA 12.2",
-      "fps": 11.2,
-      "inference_latency_ms": 89.3,
-      "end_to_end_latency_ms": 95.4,
-      "vram_mb": 840.0,
-      "gpu_power_w": 14.8,
-      "map_50": 0.824,
-      "speedup_vs_baseline": 1.0,
-      "efficiency_fps_per_watt": 0.76
-    },
-    "fp16": {
-      "precision": "FP16",
-      "framework": "TensorRT 8.6.2 (PipeGen Stage 3)",
-      "fps": 24.8,
-      "inference_latency_ms": 40.3,
-      "end_to_end_latency_ms": 44.1,
-      "vram_mb": 460.0,
-      "gpu_power_w": 13.5,
-      "map_50": 0.821,
-      "speedup_vs_baseline": 2.21,
-      "efficiency_fps_per_watt": 1.84
-    },
-    "int8": {
-      "precision": "INT8",
-      "framework": "TensorRT 8.6.2 (PipeGen Stage 4 Quantized)",
-      "fps": 31.4,
-      "inference_latency_ms": 31.8,
-      "end_to_end_latency_ms": 35.2,
-      "vram_mb": 245.0,
-      "gpu_power_w": 12.4,
-      "map_50": 0.816,
-      "speedup_vs_baseline": 2.8,
-      "efficiency_fps_per_watt": 2.53
-    }
+    "fp32": null,
+    "fp16": null,
+    "int8": null
   },
-  "int8_speedup_vs_fp16": 1.27,
-  "int8_map_drop_vs_fp16": 0.005,
-  "vram_reduction_pct": 46.7,
-  "power_reduction_pct": 8.1,
-  "ac6_speedup_pass": true,
-  "ac6_map_pass": true,
-  "ac6_overall_pass": true,
-  "pipegen_summary": "PipeGen Stage 4 INT8 quantization achieves 1.27x speedup over FP16 (31.4 FPS vs 24.8 FPS) with an imperceptible accuracy drop of only 0.005 mAP@0.5. VRAM footprint is reduced by 46.7% and power efficiency reaches 2.53 FPS/Watt."
+  "int8_speedup_vs_fp16": null,
+  "int8_map_drop_vs_fp16": null,
+  "vram_reduction_pct": null,
+  "power_reduction_pct": null,
+  "ac6_speedup_pass": null,
+  "ac6_map_pass": null,
+  "ac6_overall_pass": null,
+  "summary_text": "PENDING: No real engine speed reports have been committed."
 }

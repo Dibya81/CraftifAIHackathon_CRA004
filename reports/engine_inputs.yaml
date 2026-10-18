@@ -1,39 +1,48 @@
-device: "NVIDIA Jetson Orin Nano Developer Kit (8GB)"
-power_mode: "15W"
-input_resolution: [1920, 1080]
-calibration_dataset: "models/calibration (500 representative frames)"
-provenance: "MEASURED_PROFILE"
+# SiteSentinel Engine Inputs
+# Status: PENDING — no hardware run has been performed.
+# All values below are null until a raw log exists in evidence/pipegen/.
+# Tool: tools/engine_report.py refuses to render any number without source_file + sha256.
+# When a run is complete: run scripts/verify_hardware.sh, then python tools/engine_report.py
+
+device: null
+power_mode: null
+input_resolution: null
+calibration_dataset: null
+provenance: "PENDING"
 
 models:
   fp32:
     precision: "FP32"
-    framework: "PyTorch 2.1 CUDA 12.2"
-    fps: 11.2
-    inference_latency_ms: 89.3
-    end_to_end_latency_ms: 95.4
-    vram_mb: 840.0
-    gpu_power_w: 14.8
-    map_50: 0.824
-    speedup_vs_baseline: 1.00
+    source_file: null
+    sha256: null
+    fps: null
+    inference_latency_ms: null
+    end_to_end_latency_ms: null
+    vram_mb: null
+    gpu_power_w: null
+    map_50: null
+    speedup_vs_baseline: null
 
   fp16:
     precision: "FP16"
-    framework: "TensorRT 8.6.2 (PipeGen Stage 3)"
-    fps: 24.8
-    inference_latency_ms: 40.3
-    end_to_end_latency_ms: 44.1
-    vram_mb: 460.0
-    gpu_power_w: 13.5
-    map_50: 0.821
-    speedup_vs_baseline: 2.21
+    source_file: null
+    sha256: null
+    fps: null
+    inference_latency_ms: null
+    end_to_end_latency_ms: null
+    vram_mb: null
+    gpu_power_w: null
+    map_50: null
+    speedup_vs_baseline: null
 
   int8:
     precision: "INT8"
-    framework: "TensorRT 8.6.2 (PipeGen Stage 4 Quantized)"
-    fps: 31.4
-    inference_latency_ms: 31.8
-    end_to_end_latency_ms: 35.2
-    vram_mb: 245.0
-    gpu_power_w: 12.4
-    map_50: 0.816
-    speedup_vs_baseline: 2.80
+    source_file: null
+    sha256: null
+    fps: null
+    inference_latency_ms: null
+    end_to_end_latency_ms: null
+    vram_mb: null
+    gpu_power_w: null
+    map_50: null
+    speedup_vs_baseline: null

@@ -2,13 +2,13 @@
 
 Collects:
 - Architecture specification and problem statement
-- Architecture document and SVG diagram
+- Architecture document and diagrams
 - PipeGen requirement text (Stage 1)
-- Pipeline IR diagram and TensorRT speed reports (flags missing hardware artifacts loudly)
-- Evaluation baseline report (precision, recall, alert latency)
-- Edge optimization comparison report (FP32 vs FP16 vs INT8)
+- Pipeline IR diagram and TensorRT engine status (flags missing hardware artifacts loudly)
+- Evaluation baseline report (precision, recall, alert latency - clearly marked SIMULATED)
+- Edge optimization comparison report (FP32 vs FP16 vs INT8 - clearly marked PENDING)
 - Incident log sample and privacy-blurred evidence clip
-- Generates SUBMISSION.md with complete traceability and verification evidence.
+- Generates SUBMISSION.md with complete traceability, honesty, and verification evidence.
 """
 
 from __future__ import annotations
@@ -51,8 +51,8 @@ class SubmissionCollector:
                 None,
             ),
             (
-                "Architecture Diagram (Vector SVG)",
-                "docs/diagrams/architecture.svg",
+                "Architecture Diagram",
+                "docs/diagrams/architecture.png",
                 "Architecture",
                 False,
                 None,
@@ -94,14 +94,14 @@ class SubmissionCollector:
             ),
             (
                 "Evaluation Baseline Report (Markdown)",
-                "reports/eval_baseline.md",
+                "reports/simulated/eval_simulated.md",
                 "Evaluation & Accuracy",
                 False,
                 None,
             ),
             (
                 "Evaluation Baseline Report (JSON)",
-                "reports/eval_baseline.json",
+                "reports/simulated/eval_simulated.json",
                 "Evaluation & Accuracy",
                 False,
                 None,
@@ -141,10 +141,10 @@ class SubmissionCollector:
                 False,
                 None,
             ),
-            # Physical Hardware Artifacts (require live GPU/PipeGen run)
+            # Hardware-Dependent Artifacts (Booth Inspection)
             (
                 "Pipeline IR Node Graph Screenshot",
-                "reports/pipeline_ir.png",
+                "evidence/pipegen/pipeline_ir.png",
                 "PipeGen Integration",
                 True,
                 "Hardware step: Stage 2 DeepStream graph screenshot",
@@ -192,7 +192,6 @@ class SubmissionCollector:
                     size = fallback.stat().st_size
 
             if not exists and name == "Privacy-Blurred Evidence Clip":
-                # Check any mp4 in evidence/
                 evidence_files = list(self.root_dir.glob("evidence/**/*.mp4"))
                 if evidence_files:
                     exists = True
@@ -205,7 +204,7 @@ class SubmissionCollector:
             elif is_hw:
                 details = f"PENDING HARDWARE RUN ({todo_ref})"
             else:
-                details = "MISSING SOFTWARE ASSET"
+                details = "PENDING / OPTIONAL"
 
             audits.append(
                 DeliverableAudit(
@@ -240,13 +239,11 @@ class SubmissionCollector:
     def generate_submission_markdown(self) -> str:
         """Synthesizes the complete SUBMISSION.md document."""
         audits = self.audit_deliverables()
-        engine_comp = self.load_json("reports/engine_comparison.json") or {}
-        eval_base = self.load_json("reports/eval_baseline.json") or {}
+        eval_base = self.load_json("reports/simulated/eval_simulated.json") or {}
         pipegen_req = self.read_text("pipegen/requirement.md")
 
         now_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-        # Count software vs hardware ready
         sw_total = sum(1 for a in audits if not a.is_hardware_dependent)
         sw_passed = sum(1 for a in audits if not a.is_hardware_dependent and a.exists)
         hw_total = sum(1 for a in audits if a.is_hardware_dependent)
@@ -264,12 +261,12 @@ class SubmissionCollector:
         )
         lines.append("")
         lines.append(f"**Submission Date:** {now_str}  ")
-        lines.append("**Lead Engineer:** Automated Lead Agent (Pair Programming with Dibya Bhusal)  ")
+        lines.append("**Lead Engineer:** Dibya Bhusal  ")
         lines.append(
-            f"**Software Implementation Status:** **{sw_passed}/{sw_total} Core Deliverables Verified (100%)**  "
+            f"**Software Implementation Status:** **{sw_passed}/{sw_total} Core Software Deliverables Verified**  "
         )
         lines.append(
-            f"**Edge Hardware Verification:** **{hw_passed}/{hw_total} Hardware Artifacts Live** (See Section 8 for booth deployment steps)"
+            f"**Edge Hardware Verification:** **{hw_passed}/{hw_total} Hardware Artifacts Live** (Hardware profiling runbook in `docs/RUNBOOK.md`)"
         )
         lines.append("")
         lines.append("---")
@@ -286,21 +283,21 @@ class SubmissionCollector:
         )
         lines.append("")
         lines.append(
-            "**SiteSentinel** transforms commodity edge cameras into continuous, autonomous safety intelligence sentinels. "
-            "By combining **PipeGen-accelerated DeepStream + TensorRT video perception** with a zero-copy Python domain rule engine, "
+            "**SiteSentinel** transforms commodity edge cameras into continuous safety monitoring sentinels. "
+            "By consuming the output of a **PipeGen-compiled DeepStream + TensorRT video perception pipeline** via MQTT, "
             "SiteSentinel provides:"
         )
         lines.append(
             "1. **Real-time multi-class perception**: Sub-millisecond person tracking, anatomical PPE association (hard hat on head, high-vis vest on torso), and restricted polygon evaluation."
         )
         lines.append(
-            "2. **Privacy-by-design enforcement**: Hard system rule ensuring zero unblurred face frames are ever written to disk or transmitted unmasked."
+            "2. **Privacy-by-design enforcement**: Hard system rule ensuring zero unblurred face frames are ever written to disk or transmitted unmasked (`PrivacyViolationError`)."
         )
         lines.append(
-            "3. **Durable, actionable incident dispatch**: Fsync-safe append-only incident logging, low-latency MQTT dispatch (<3s including debounce), and an industrial-grade React control room dashboard."
+            "3. **Durable, actionable incident dispatch**: Fsync-safe append-only incident logging, low-latency MQTT dispatch (<3s including debounce), and a React control room dashboard."
         )
         lines.append(
-            "4. **Edge Silicon Optimization**: Demonstrated INT8 entropy-calibrated TensorRT acceleration delivering **1.27x throughput gain (31.4 FPS)** and **46.7% VRAM reduction** on NVIDIA Jetson Orin with negligible accuracy delta (mAP drop <= 0.005)."
+            "4. **Edge Silicon Optimization Target**: Complete tooling prepared for INT8 entropy-calibrated TensorRT acceleration target. Automated profiling script provided in `scripts/verify_hardware.sh` (Status: PENDING hardware run)."
         )
         lines.append("")
 
@@ -315,19 +312,19 @@ class SubmissionCollector:
         lines.append("| PipeGen Stage | Stage Name | SiteSentinel Artifact & Implementation | Status |")
         lines.append("|---|---|---|---|")
         lines.append(
-            "| **Stage 1** | **Requirement** | Frozen natural language specification in [`pipegen/requirement.md`](file:///pipegen/requirement.md) | Verified |"
+            "| **Stage 1** | **Requirement** | Frozen natural language specification in [`pipegen/requirement.md`](pipegen/requirement.md) | Verified (Committed) |"
         )
         lines.append(
-            "| **Stage 2** | **Pipeline IR** | DeepStream node graph (Decode -> NVMM -> Detector -> Tracker -> FaceBlur -> OSD -> MQTT) | Ready (Graph logged) |"
+            "| **Stage 2** | **Pipeline IR** | DeepStream node graph (Decode -> NVMM -> Detector -> Tracker -> FaceBlur -> OSD -> MQTT) | Design ready (`docs/diagrams/architecture.png`); hardware screenshot PENDING |"
         )
         lines.append(
-            "| **Stage 3** | **Model Selection** | Multi-class PPE detector compiled to FP16 TensorRT engine ([`reports/engine_inputs.yaml`](file:///reports/engine_inputs.yaml)) | Verified |"
+            "| **Stage 3** | **Model Selection** | Multi-class PPE detector compiled to FP16 TensorRT engine ([`reports/engine_inputs.yaml`](reports/engine_inputs.yaml)) | PENDING hardware run |"
         )
         lines.append(
-            "| **Stage 4** | **Compiler & Quantizer** | INT8 Entropy-calibrated engine with quantified accuracy parity ([`reports/engine_comparison.md`](file:///reports/engine_comparison.md)) | Verified (Speedup >= 1.25x) |"
+            "| **Stage 4** | **Compiler & Quantizer** | INT8 Entropy-calibrated engine ([`reports/engine_comparison.md`](reports/engine_comparison.md)) | PENDING hardware run |"
         )
         lines.append(
-            "| **Stage 5** | **Export Application** | Clean runtime export in [`pipegen/export/`](file:///pipegen/export/), consumed via MQTT, JSONL, and RTSP | Frozen & Untouched |"
+            "| **Stage 5** | **Export Application** | Clean runtime export in [`pipegen/export/`](pipegen/export/), consumed via MQTT, JSONL, and RTSP | Frozen boundary; PENDING real export |"
         )
         lines.append("")
         lines.append("#### Stage 1 Frozen Requirement Text:")
@@ -340,7 +337,7 @@ class SubmissionCollector:
         lines.append("## 3. System Architecture & Zero-Copy Data Flow")
         lines.append("")
         lines.append(
-            "The SiteSentinel runtime decouples heavy hardware-accelerated video decoding and neural inference (PipeGen DeepStream/TensorRT) "
+            "The SiteSentinel runtime decouples hardware-accelerated video decoding and neural inference (PipeGen DeepStream/TensorRT) "
             "from higher-level safety intelligence, state machine tracking, and presentation."
         )
         lines.append("")
@@ -360,83 +357,55 @@ class SubmissionCollector:
         lines.append("  API -->|/ws/live & REST| Dash[React Control Room Dashboard]")
         lines.append("```")
         lines.append("")
-        lines.append(
-            "- **Vector Architecture Diagram:** [`docs/diagrams/architecture.svg`](file:///docs/diagrams/architecture.svg)"
-        )
-        lines.append("- **Component Reference:** [`docs/ARCHITECTURE.md`](file:///docs/ARCHITECTURE.md)")
+        lines.append("- **Architecture Diagram:** [`docs/diagrams/architecture.png`](docs/diagrams/architecture.png)")
+        lines.append("- **Component Reference:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)")
         lines.append("")
 
         # Section 4: Edge Optimization Bonus Report
         lines.append("## 4. Edge Optimization Bonus Report (FP32 vs FP16 vs INT8)")
         lines.append("")
         lines.append(
-            "To qualify for the **Edge Optimization Bonus**, SiteSentinel conducted standardized silicon profiling "
-            "on NVIDIA Jetson Orin Nano (15W power envelope). Results demonstrate that INT8 quantization unlocks real-time 30+ FPS "
-            "operation with minimal degradation to detection precision."
+            "> **Status: PENDING — No hardware profiling has been performed on this machine.**  \n"
+            "> All metrics will be recorded from raw logs via `scripts/verify_hardware.sh`. See `evidence/ledger.yaml`."
         )
         lines.append("")
-
-        eng_table = engine_comp.get("table", [])
-        if eng_table:
-            lines.append(
-                "| Precision Engine | FPS | Latency (Inference) | End-to-End Latency | GPU Power | VRAM | mAP@0.5 | Efficiency (FPS/W) |"
-            )
-            lines.append("|---|---|---|---|---|---|---|---|")
-            for row in eng_table:
-                lines.append(
-                    f"| **{row.get('precision')}** | {row.get('fps')} | {row.get('latency_ms')} ms | {row.get('e2e_latency_ms')} ms | {row.get('power_watts')} W | {row.get('memory_mb')} MB | {row.get('map50')} | {row.get('fps_per_watt')} |"
-                )
-            lines.append("")
-
-        comp_data = engine_comp.get("comparison", {})
-        int8_vs_fp16 = comp_data.get("int8_vs_fp16", {})
-        lines.append("### Key Edge Silicon Optimization Highlights:")
-        lines.append(
-            f"- **Throughput Speedup:** **{int8_vs_fp16.get('speedup_factor', 1.27)}x** ({int8_vs_fp16.get('fps_delta', '+6.7')} FPS) exceeding the 1.25x hackathon threshold."
-        )
-        lines.append(
-            f"- **VRAM Footprint Reduction:** **{int8_vs_fp16.get('memory_reduction_pct', -46.7)}%** (from 1,480 MB down to 789 MB), freeing critical unified memory for concurrent video channels."
-        )
-        lines.append(
-            f"- **Accuracy Trade-off:** mAP drop of only **{int8_vs_fp16.get('map_delta', -0.005)}** (0.5% delta vs allowable 2.0% budget)."
-        )
-        lines.append(
-            "- **Edge Optimization Thresholds:** **PASS** (Speedup >= 1.25x and mAP drop <= 0.02)."
-        )
-        lines.append("")
-        lines.append(
-            "> [!NOTE]\n> **Honest Engineering Analysis:** INT8 quantization provides dramatic throughput gains for near-to-mid range workers. "
-            "However, as documented in [`reports/engine_comparison.md`](file:///reports/engine_comparison.md), slight sensitivity loss occurs for distant helmets "
-            "(sub-30 pixel bounding boxes). SiteSentinel mitigates this through anatomical head-region association and confidence threshold tuning."
-        )
+        lines.append("<!-- BEGIN GENERATED: SUBMISSION_TARGETS -->")
+        lines.append("### Edge Silicon Optimization Targets (Acceptance Criteria):")
+        lines.append("- **Throughput Speedup Target:** INT8 vs FP16 speedup >= **1.25x**.")
+        lines.append("- **Accuracy Parity Target:** Quantization mAP drop <= **0.02**.")
+        lines.append("- **VRAM Reduction Target:** Measurable memory reduction to enable multi-camera concurrency.")
+        lines.append("- **Profilers & Scripts:** `scripts/verify_hardware.sh` automatically collects `tegrastats` / `nvidia-smi` into `evidence/hardware/`.")
+        lines.append("<!-- END GENERATED: SUBMISSION_TARGETS -->")
         lines.append("")
 
         # Section 5: Offline Evaluation & Benchmark Accuracy
         lines.append("## 5. Offline Evaluation & Accuracy Benchmark")
         lines.append("")
         lines.append(
-            "Safety intelligence requires verifiable precision and recall. SiteSentinel provides an offline evaluation harness "
-            "([`eval/evaluate.py`](file:///eval/evaluate.py)) that matches detected incidents to ground-truth time intervals with temporal tolerance."
+            "> **Status: SIMULATED — Run against synthetic test clip.**  \n"
+            "> These metrics verify rule-engine correctness on synthetic data; real-camera footage evaluation is PENDING."
         )
         lines.append("")
 
+        lines.append("<!-- BEGIN GENERATED: SUBMISSION_RESULTS -->")
         metrics = eval_base.get("metrics", {})
         lines.append("| Metric | Evaluated Value | Benchmark Requirement | Status |")
         lines.append("|---|---|---|---|")
-        lines.append(f"| **Precision** | **{metrics.get('precision', 1.0) * 100:.1f}%** | >= 80.0% | **PASS** |")
-        lines.append(f"| **Recall** | **{metrics.get('recall', 1.0) * 100:.1f}%** | >= 85.0% | **PASS** |")
-        lines.append(f"| **F1 Score** | **{metrics.get('f1_score', 1.0):.3f}** | >= 0.820 | **PASS** |")
+        lines.append(f"| **Precision** | **{metrics.get('precision', 1.0) * 100:.1f}%** | >= 80.0% | **SIMULATED** |")
+        lines.append(f"| **Recall** | **{metrics.get('recall', 1.0) * 100:.1f}%** | >= 85.0% | **SIMULATED** |")
+        lines.append(f"| **F1 Score** | **{metrics.get('f1_score', 1.0):.3f}** | >= 0.820 | **SIMULATED** |")
         lines.append(
-            f"| **Mean Alert Latency** | **{metrics.get('mean_alert_latency_s', 0.12):.2f} s** | < 3.00 s | **PASS** |"
+            f"| **Mean Alert Latency** | **{metrics.get('mean_alert_latency_s', 0.12):.2f} s** | < 3.00 s | **SIMULATED** |"
         )
         lines.append(
-            f"| **True Positives (TP)** | {metrics.get('true_positives', 3)} | Ground truth match | - |"
+            f"| **True Positives (TP)** | {metrics.get('true_positives', 3)} | Ground truth match | SIMULATED |"
         )
-        lines.append(f"| **False Positives (FP)** | {metrics.get('false_positives', 0)} | 0 false alarms | - |")
-        lines.append(f"| **False Negatives (FN)** | {metrics.get('false_negatives', 0)} | 0 missed violations | - |")
+        lines.append(f"| **False Positives (FP)** | {metrics.get('false_positives', 0)} | 0 false alarms | SIMULATED |")
+        lines.append(f"| **False Negatives (FN)** | {metrics.get('false_negatives', 0)} | 0 missed violations | SIMULATED |")
+        lines.append("<!-- END GENERATED: SUBMISSION_RESULTS -->")
         lines.append("")
         lines.append(
-            "- **Benchmark Report Reference:** [`reports/eval_baseline.md`](file:///reports/eval_baseline.md) and [`reports/eval_baseline.json`](file:///reports/eval_baseline.json)"
+            "- **Benchmark Report Reference:** [`reports/simulated/eval_simulated.md`](reports/simulated/eval_simulated.md) and [`reports/simulated/eval_simulated.json`](reports/simulated/eval_simulated.json)"
         )
         lines.append(
             "- **Recommended Parameters (Threshold Sweep):** `min_duration_s = 2.0s`, `min_overlap = 0.20`."
@@ -453,13 +422,13 @@ class SubmissionCollector:
             "1. **Hard initialization gate:** The `EvidenceWriter` refuses to start or persist any frames if `privacy.require_blurred_source` is True and the stream is not certified blurred (`PrivacyViolationError`)."
         )
         lines.append(
-            "2. **Automated Audit Scanner ([`tools/privacy_audit.py`](file:///tools/privacy_audit.py)):** Recursively scans all saved video clips and thumbnails using OpenCV Haar cascade face detection and skin tone/sharpness texture analysis."
+            "2. **Automated Audit Scanner ([`tools/privacy_audit.py`](tools/privacy_audit.py)):** Recursively scans all saved video clips and thumbnails using OpenCV Haar cascade face detection and skin tone/sharpness texture analysis."
         )
         lines.append(
             "3. **Zero Leaked Faces:** Running `make test-privacy` verifies zero unblurred faces in saved evidence."
         )
         lines.append(
-            "4. **Verified Sample Evidence:** Stored in [`evidence/sample/sample-no-helmet-001.mp4`](file:///evidence/sample/sample-no-helmet-001.mp4)."
+            "4. **Verified Sample Evidence:** Stored in [`evidence/sample/sample-no-helmet-001.mp4`](evidence/sample/sample-no-helmet-001.mp4)."
         )
         lines.append("")
 
@@ -467,11 +436,11 @@ class SubmissionCollector:
         lines.append("## 7. Live Control Room Dashboard & Spatial Zone Intelligence")
         lines.append("")
         lines.append(
-            "The SiteSentinel dashboard ([`dashboard/`](file:///dashboard/)) is built with React 18, TypeScript, and pure CSS "
-            "strictly adhering to the industrial design tokens in [`docs/DESIGN.md`](file:///docs/DESIGN.md):"
+            "The SiteSentinel dashboard ([`dashboard/`](dashboard/)) is built with React 18, TypeScript, and pure CSS "
+            "strictly adhering to the industrial design tokens in [`docs/DESIGN.md`](docs/DESIGN.md):"
         )
         lines.append(
-            "- **HealthBar:** Live hardware telemetry (FPS, latency ms, GPU power, engine precision badge: INT8/FP16), camera status banner, and Present mode toggle."
+            "- **HealthBar:** Live hardware telemetry (FPS, latency ms, GPU power, engine precision badge), camera status banner, and Present mode toggle."
         )
         lines.append(
             "- **VideoPlayerWithZones:** Live video canvas overlaid with scalable SVG polygons (safe, restricted, danger). Zone outlines dynamically pulse to `hazard-orange` (4px stroke) during active intrusions."
@@ -483,7 +452,7 @@ class SubmissionCollector:
             "- **IncidentFeed & Drawer:** Low-latency stream updating in **<1s of MQTT publish**. Selecting an incident opens the drawer with face-blurred video playback, officer acknowledgement, and audit note thread."
         )
         lines.append(
-            "- **ReportsView & SystemView:** Zone compliance % analytics, hourly violation distributions, CSV export, and Jetson Orin FP32/FP16/INT8 hardware comparison table."
+            "- **ReportsView & SystemView:** Zone compliance % analytics, hourly violation distributions, CSV export, and engine status reference table."
         )
         lines.append("")
 
@@ -491,18 +460,20 @@ class SubmissionCollector:
         lines.append("## 8. Submission Deliverables Checklist & Evidence Audit")
         lines.append("")
         lines.append(
-            "In accordance with the hackathon rules and the gravitas verification framework, every deliverable is listed below. "
+            "In accordance with hackathon rules and the claims ledger (`evidence/ledger.yaml`), every deliverable is listed below. "
             "Hardware-dependent booth items are explicitly flagged so judges can inspect the live hardware setup."
         )
         lines.append("")
+        lines.append("<!-- BEGIN GENERATED: SUBMISSION_DELIVERABLES -->")
         lines.append("| Deliverable | Category | Expected Path | Status | Verification / Action |")
         lines.append("|---|---|---|---|---|")
         for a in audits:
             status_badge = "**FOUND**" if a.exists else "**PENDING**"
-            status_icon = "✅" if a.exists else ("⏳" if a.is_hardware_dependent else "❌")
+            status_tag = "[FOUND]" if a.exists else ("[PENDING HW]" if a.is_hardware_dependent else "[MISSING]")
             lines.append(
-                f"| {status_icon} **{a.name}** | {a.category} | `{a.expected_path}` | {status_badge} | {a.details} |"
+                f"| {status_tag} **{a.name}** | {a.category} | `{a.expected_path}` | {status_badge} | {a.details} |"
             )
+        lines.append("<!-- END GENERATED: SUBMISSION_DELIVERABLES -->")
         lines.append("")
 
         if missing_hw:
@@ -523,7 +494,7 @@ class SubmissionCollector:
         lines.append("make install")
         lines.append("npm --prefix dashboard install")
         lines.append("")
-        lines.append("# 2. Run test suites (58 Python unit/integration tests + 11 Vitest dashboard tests)")
+        lines.append("# 2. Run test suites (85 Python tests + 11 Vitest dashboard tests)")
         lines.append("make test")
         lines.append("")
         lines.append("# 3. Verify static code hygiene and typing (Ruff + Mypy)")
@@ -532,13 +503,13 @@ class SubmissionCollector:
         lines.append("# 4. Execute privacy enforcement audit across evidence clips")
         lines.append("make test-privacy")
         lines.append("")
-        lines.append("# 5. Run offline evaluation harness against held-out benchmark clip")
-        lines.append("make eval")
+        lines.append("# 5. Verify claims ledger integrity (recomputes hashes, fails on unverified claims)")
+        lines.append("python tools/ledger.py verify")
         lines.append("")
-        lines.append("# 6. Generate TensorRT engine comparison report (Edge Optimization bonus)")
-        lines.append("make report")
+        lines.append("# 6. Audit documentation for un-ledgered numbers and banned claims")
+        lines.append("python tools/audit_claims.py")
         lines.append("")
-        lines.append("# 7. Launch one-click demo (Mosquitto broker + FastAPI + Dashboard + 25 FPS simulator)")
+        lines.append("# 7. Launch one-click demo (FastAPI + Dashboard + 25 FPS simulator)")
         lines.append("./scripts/run_demo.sh --sim")
         lines.append("```")
         lines.append("")
@@ -546,13 +517,13 @@ class SubmissionCollector:
         # Section 10: Judge Walkthrough Script (4 Minutes)
         lines.append("## 10. Judge Walkthrough Script (4 Minutes)")
         lines.append("")
-        lines.append("Follow the 4-minute presentation itinerary from [`demo/CHECKLIST.md`](file:///demo/CHECKLIST.md):")
+        lines.append("Follow the 4-minute presentation itinerary from [`demo/CHECKLIST.md`](demo/CHECKLIST.md):")
         lines.append("")
         lines.append(
-            "1. **0:00 - 0:30 (The Problem & Track A Alignment):** Introduce SiteSentinel as an autonomous safety intelligence system running on PipeGen-generated DeepStream + TensorRT pipelines."
+            "1. **0:00 - 0:30 (The Problem & Track A Alignment):** Introduce SiteSentinel as a continuous safety intelligence system running on PipeGen-generated DeepStream + TensorRT pipelines."
         )
         lines.append(
-            "2. **0:30 - 1:15 (Edge Optimization Bonus):** Open System tab on Dashboard (`http://localhost:5173`). Highlight Jetson Orin INT8 vs FP16 speedup (31.4 FPS vs 24.7 FPS, -46.7% VRAM) and mAP parity."
+            "2. **0:30 - 1:15 (Edge Optimization Architecture):** Open System tab on Dashboard (`http://localhost:5173`). Review edge engine optimization targets, INT8 vs FP16 criteria, and hardware runbook (`docs/RUNBOOK.md`)."
         )
         lines.append(
             "3. **1:15 - 2:30 (Live Safety Intelligence & Spatial Zones):** Switch to Live View. Show simulator triggering NO_HELMET and ZONE_INTRUSION. Point out dynamic hazard-orange zone outline changes and sub-second incident feed updates."

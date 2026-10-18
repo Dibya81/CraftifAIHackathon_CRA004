@@ -33,7 +33,7 @@ Open your browser to:
 
 ### Step 1: Industrial Control Room & Live Stream (60 seconds)
 1. **Show the Universal Health Bar**:
-   - Point out **Engine INT8** badge, **31 FPS**, **31.8 ms latency**, and **System healthy** green pill.
+   - Point out mode banner (**Simulated data. Not a live camera.**), live telemetry, and system health dropdown.
    - Explain: Built for industrial control rooms (high contrast, quiet surfaces, color reserved for hazard meaning).
 2. **Toggle "Present mode"**:
    - Click **Present mode** in the top right.
@@ -54,7 +54,7 @@ Open your browser to:
 2. **Acknowledge the Incident**:
    - Type an optional note: `"Worker reminded by site supervisor"`.
    - Click **Acknowledge**.
-   - Status instantly updates to `"✓ Acknowledged by Safety Officer"`.
+   - Status updates to `Acknowledged by Safety Officer`.
 
 ### Step 4: Interactive Zone Editor & Hot-Reload (45 seconds)
 1. Navigate to **Zone editor** tab.
