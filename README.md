@@ -14,7 +14,7 @@ SiteSentinel is an industrial edge safety intelligence system built on top of a 
 
 SiteSentinel is architected around the 5-stage PipeGen compilation pipeline. The Stage 5 DeepStream export directory is preserved as an immutable boundary.
 
-- **GitHub Repository:** [https://github.com/Dibya81/Site_sentinel.git](https://github.com/Dibya81/Site_sentinel.git)
+- **GitHub Repository:** [https://github.com/Dibya81/CraftifAIHackathon_CRA004](https://github.com/Dibya81/CraftifAIHackathon_CRA004)
 - **Export Project Folder:** [`pipegen/export/`](pipegen/export/) (and mirrored in [`.pipegen/`](.pipegen/))
 - **Upload / Import Option:** You can upload or import the complete project directly via the **`pipegen/`** or **`.pipegen/`** folder, or by cloning the GitHub repository URL above.
 - **Stage 1 Frozen Requirement:** [`pipegen/requirement.md`](pipegen/requirement.md)
@@ -69,8 +69,8 @@ The architecture and hardware node connections are archived in [`reports/pipelin
 ### 📹 72-Second Full Walkthrough Video Recording
 A comprehensive **72.5-second (1.2 min)** video demonstration showing the pipeline running on input, real-time alert triggering, evidence file inspection, and dashboard metrics:
 - **Local File:** [`evidence/demo_walkthrough_1_to_3_min.mp4`](evidence/demo_walkthrough_1_to_3_min.mp4) (H.264 1080p, 3.7 MB)
-- **Watch Online on GitHub:** [View Demo Video on GitHub](https://github.com/Dibya81/Site_sentinel/blob/main/evidence/demo_walkthrough_1_to_3_min.mp4)
-- **Direct Download:** [Download MP4 Video](https://github.com/Dibya81/Site_sentinel/raw/main/evidence/demo_walkthrough_1_to_3_min.mp4)
+- **Watch Online on GitHub:** [View Demo Video on GitHub](https://github.com/Dibya81/CraftifAIHackathon_CRA004/blob/main/evidence/demo_walkthrough_1_to_3_min.mp4)
+- **Direct Download:** [Download MP4 Video](https://github.com/Dibya81/CraftifAIHackathon_CRA004/raw/main/evidence/demo_walkthrough_1_to_3_min.mp4)
 
 ---
 
@@ -105,8 +105,8 @@ Confirmed safety incident (`NO_HELMET`) stored to disk with guaranteed automated
 ### Step 1: Install Dependencies
 ```bash
 # Clone the repository
-git clone https://github.com/Dibya81/Site_sentinel.git
-cd Site_sentinel
+git clone https://github.com/Dibya81/CraftifAIHackathon_CRA004.git
+cd CraftifAIHackathon_CRA004
 
 # Install Python virtual environment and dependencies
 make install
