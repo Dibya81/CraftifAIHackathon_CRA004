@@ -338,8 +338,18 @@ def run_threshold_sweep(
     zone_manager: ZoneManager,
     min_durations: List[float] = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
     min_overlaps: List[float] = [0.1, 0.25, 0.4],
+    labels_path: Optional[str | Path] = None,
 ) -> List[Dict[str, Any]]:
-    """Sweep rule debounce duration and PPE overlap thresholds to determine optimal operating point."""
+    """Sweep rule debounce duration and PPE overlap thresholds to determine optimal operating point.
+    
+    Refuses to execute against locked test split labels to maintain strict evaluation integrity.
+    """
+    if labels_path is not None:
+        p_str = str(labels_path).lower()
+        if "test" in p_str and "dev" not in p_str:
+            raise ValueError(
+                f"Data Protocol Integrity Violation: Parameter threshold sweep cannot be run on locked test split '{labels_path}'."
+            )
     sweep_results: List[Dict[str, Any]] = []
 
     for overlap in min_overlaps:
@@ -703,7 +713,7 @@ def main() -> None:
     sweep_results = None
     if args.sweep:
         print("Running parameter threshold sweep across debounce durations & overlap...")
-        sweep_results = run_threshold_sweep(ground_truth, raw_frames, zone_mgr)
+        sweep_results = run_threshold_sweep(ground_truth, raw_frames, zone_mgr, labels_path=labels_path)
 
     # AC-5 Qualification Gate:
     # 1. Precision >= 0.80 and Recall >= 0.85

@@ -246,3 +246,34 @@ def test_failure_analysis_report_generation(tmp_path: Path):
     assert "Missed Violation Incidents" in content
     assert "False Alarm Incidents" in content
     assert "SIMULATED" in content
+
+
+def test_threshold_sweep_refuses_test_split_labels():
+    """Verify that run_threshold_sweep refuses to execute when given locked test split labels."""
+    sim = Simulator(fps=25.0)
+    frames = sim.generate_scenario("no_helmet", duration_s=2.0)
+    zones_cfg = load_zones_config("config/zones.json")
+    zone_mgr = ZoneManager(zones_cfg)
+    gt = [GroundTruthInterval(type="NO_HELMET", start_s=0.5, end_s=1.5, track_id=1)]
+
+    # Locked test split path
+    with pytest.raises(ValueError, match="locked test split"):
+        run_threshold_sweep(
+            gt,
+            frames,
+            zone_mgr,
+            min_durations=[1.0],
+            min_overlaps=[0.25],
+            labels_path="data/labelled/site01_test.json",
+        )
+
+    # Dev split path should succeed
+    results = run_threshold_sweep(
+        gt,
+        frames,
+        zone_mgr,
+        min_durations=[1.0],
+        min_overlaps=[0.25],
+        labels_path="data/labelled/site01_dev.json",
+    )
+    assert len(results) == 1

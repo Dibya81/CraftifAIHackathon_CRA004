@@ -131,21 +131,21 @@ def audit_repository(root_dir: Path) -> int:
         rel_path = doc_path.relative_to(root_dir)
         violations = check_markdown_file(doc_path)
         if violations:
-            print(f"❌ {rel_path} has {len(violations)} violation(s):")
+            print(f"[FAIL] {rel_path} has {len(violations)} violation(s):")
             for line_no, content, msg in violations:
                 print(f"   L{line_no}: {msg}")
                 print(f"        \"{content.strip()[:90]}\"")
             total_violations += len(violations)
         else:
-            print(f"✅ {rel_path}: 0 violations")
+            print(f"[PASS] {rel_path}: 0 violations")
             
     print("\n----------------------------------------------------------")
     if total_violations == 0:
-        print("🎉 ALL DOCUMENTATION AUDIT CHECKS PASSED (0 violations)")
+        print("ALL DOCUMENTATION AUDIT CHECKS PASSED (0 violations)")
         print("----------------------------------------------------------")
         return 0
     else:
-        print(f"❌ AUDIT FAILED: {total_violations} total violation(s) found.")
+        print(f"[FAIL] AUDIT FAILED: {total_violations} total violation(s) found.")
         print("----------------------------------------------------------")
         return 1
 
