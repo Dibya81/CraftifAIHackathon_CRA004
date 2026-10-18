@@ -2,9 +2,9 @@
 
 from unittest.mock import MagicMock
 
+from sentinel.adapters.mqtt import SentinelMQTTClient
 from sentinel.config import MqttConfig
-from sentinel.models import Incident
-from sentinel.mqtt_client import SentinelMQTTClient
+from sentinel.domain.models import Incident
 
 
 def test_mqtt_callbacks_and_dispatch():

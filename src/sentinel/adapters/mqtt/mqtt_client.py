@@ -1,4 +1,4 @@
-"""MQTT wrapper for SiteSentinel using paho-mqtt v2.
+"""MQTT client adapter for SiteSentinel using paho-mqtt v2.
 
 Subscribes to PipeGen detections (QoS 0), publishes incidents (QoS 1),
 and emits retained health payloads (sentinel/health). Handles auto-reconnect with backoff.
@@ -13,9 +13,9 @@ from typing import Any, Callable, Dict, Optional
 from paho.mqtt.client import CallbackAPIVersion, Client
 
 from sentinel.config import MqttConfig
-from sentinel.models import Incident
+from sentinel.domain.models import Incident
 
-logger = logging.getLogger("sentinel.mqtt")
+logger = logging.getLogger("sentinel.adapters.mqtt.client")
 
 
 class SentinelMQTTClient:
@@ -41,25 +41,24 @@ class SentinelMQTTClient:
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
 
-    def _on_connect(self, client, userdata, flags, rc, properties=None) -> None:
+    def _on_connect(self, client: Client, userdata: Any, flags: Any, rc: Any, properties: Any = None) -> None:
         if rc == 0:
             self.connected = True
             logger.info("Connected to MQTT broker at %s:%d", self.config.host, self.config.port)
-            # Subscribe to detections topic at QoS 0
             client.subscribe(self.config.detections_topic, qos=0)
             logger.info("Subscribed to detections topic: %s (QoS 0)", self.config.detections_topic)
         else:
             self.connected = False
             logger.error("Failed to connect to MQTT broker, return code: %s", rc)
 
-    def _on_disconnect(self, client, userdata, flags, rc, properties=None) -> None:
+    def _on_disconnect(self, client: Client, userdata: Any, flags: Any, rc: Any, properties: Any = None) -> None:
         self.connected = False
         if rc != 0:
             logger.warning("Unexpected MQTT disconnection (rc=%s). Auto-reconnecting...", rc)
         else:
             logger.info("MQTT client disconnected cleanly.")
 
-    def _on_message(self, client, userdata, msg) -> None:
+    def _on_message(self, client: Client, userdata: Any, msg: Any) -> None:
         if msg.topic == self.config.detections_topic and self.on_detection_callback:
             try:
                 payload = json.loads(msg.payload.decode("utf-8"))
@@ -106,3 +105,6 @@ class SentinelMQTTClient:
         """Publish system health to sentinel/health as retained message."""
         data_str = json.dumps(health_dict)
         self.client.publish(self.config.health_topic, data_str, qos=1, retain=True)
+
+
+__all__ = ["SentinelMQTTClient"]

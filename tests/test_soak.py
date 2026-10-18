@@ -1,6 +1,6 @@
 import pytest
 
-from tools.soak_test import run_soak_test
+from tools.soak import run_soak_test
 
 
 @pytest.mark.tc("TC-28")

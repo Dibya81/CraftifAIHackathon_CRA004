@@ -23,9 +23,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sentinel.config import load_rules_config, load_zones_config
-from sentinel.models import FrameMeta, Incident
-from sentinel.rules import RuleEngine
-from sentinel.zones import ZoneManager
+from sentinel.domain.models import FrameMeta, Incident
+from sentinel.domain.rules import RuleEngine
+from sentinel.domain.zones import ZoneManager
 from tools.simulate import Simulator
 
 

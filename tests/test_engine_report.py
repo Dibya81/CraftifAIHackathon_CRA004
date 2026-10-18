@@ -29,6 +29,7 @@ def test_compute_engine_comparison_ac6_pass():
     mock_data = {
         "device": "NVIDIA Jetson Orin Nano",
         "power_mode": "15W",
+        "provenance": "SIMULATED",
         "models": {
             "fp32": {
                 "precision": "FP32",
@@ -79,6 +80,7 @@ def test_compute_engine_comparison_ac6_fail():
     mock_data = {
         "device": "NVIDIA Jetson Orin Nano",
         "power_mode": "15W",
+        "provenance": "SIMULATED",
         "models": {
             "fp16": {
                 "precision": "FP16",
@@ -109,7 +111,20 @@ def test_compute_engine_comparison_ac6_fail():
     assert summary.ac6_overall_pass is False
 
 
-def test_generate_engine_reports(tmp_path: Path):
+def test_refuse_unsourced_inputs():
+    """Verify parser refuses un-sourced inputs when validate_sources is True."""
+    unsourced_data = {
+        "models": {
+            "fp16": {"fps": 20.0, "source_file": None, "sha256": None},
+            "int8": {"fps": 26.0, "source_file": None, "sha256": None},
+        }
+    }
+    with pytest.raises(ValueError, match="Un-sourced engine inputs detected"):
+        compute_engine_comparison(unsourced_data, validate_sources=True)
+
+
+def test_generate_engine_reports_pending(tmp_path: Path):
+    """Verify loading empty/pending engine_inputs.yaml produces PENDING documents."""
     data = load_engine_inputs("reports/engine_inputs.yaml")
     summary = compute_engine_comparison(data)
     json_p, md_p = generate_reports(summary, output_dir=tmp_path)
@@ -119,11 +134,10 @@ def test_generate_engine_reports(tmp_path: Path):
 
     with open(json_p, "r") as f:
         json_data = json.load(f)
-    assert json_data["ac6_overall_pass"] is True
-    assert json_data["int8_speedup_vs_fp16"] == 1.27
+    assert json_data["status"] == "PENDING"
+    assert json_data["ac6_overall_pass"] is None
 
     with open(md_p, "r") as f:
         md_text = f.read()
-    assert "- **AC-6 Overall Status**: ✅ **PASS**" in md_text
-    assert "Framework" in md_text
-    assert "Zero-Copy NVMM Memory Pipeline" in md_text
+    assert "Status**: PENDING" in md_text
+    assert "ENGINE-FPS-INT8" in md_text

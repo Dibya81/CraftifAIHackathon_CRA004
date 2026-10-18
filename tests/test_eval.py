@@ -11,8 +11,8 @@ from eval.evaluate import (
     run_threshold_sweep,
 )
 from sentinel.config import load_zones_config
-from sentinel.models import Incident
-from sentinel.zones import ZoneManager
+from sentinel.domain.models import Incident
+from sentinel.domain.zones import ZoneManager
 from tools.label_clip import inspect_clip, parse_interval_spec, save_labels
 from tools.simulate import Simulator
 
@@ -151,7 +151,7 @@ def test_evaluation_report_generation(tmp_path: Path):
 
     with open(md_p, "r") as f:
         md_text = f.read()
-    assert "- **AC-5 Pass Status**: ✅ **PASS**" in md_text
+    assert "- **AC-5 Pass Status**: **PASS**" in md_text
     assert "Threshold Sweep Analysis" in md_text
 
 
@@ -177,3 +177,72 @@ def test_run_threshold_sweep_and_replay():
         assert "precision" in r
         assert "recall" in r
         assert "f1_score" in r
+
+
+def test_wilson_score_and_p95_diagnostics():
+    from eval.evaluate import calculate_p95, wilson_score_interval
+
+    # Wilson interval: 10 successes out of 10
+    lower, upper = wilson_score_interval(10, 10)
+    assert 0.70 < lower < 1.0
+    assert upper == 1.0
+
+    # Wilson interval: 0 successes
+    lower, upper = wilson_score_interval(0, 0)
+    assert lower == 0.0 and upper == 0.0
+
+    # p95 latency
+    lats = [0.1 * i for i in range(1, 21)]  # 0.1 to 2.0
+    p95 = calculate_p95(lats)
+    assert 1.8 <= p95 <= 2.0
+
+
+def test_failure_analysis_report_generation(tmp_path: Path):
+    from eval.evaluate import generate_failure_analysis_report
+
+    summary = EvaluationSummary(
+        timestamp="2026-10-18T12:00:00Z",
+        clip_path="data/test_clips/site01.mp4",
+        labels_path="data/labelled/site01.json",
+        total_frames=500,
+        fps=25.0,
+        overall_precision=0.85,
+        overall_recall=0.80,
+        overall_f1=0.824,
+        overall_mean_latency_s=1.1,
+        ac5_pass=False,
+        per_rule_metrics={},
+        misses=[
+            {
+                "index": 0,
+                "type": "NO_HELMET",
+                "start_s": 1.0,
+                "end_s": 4.0,
+                "track_id": 1,
+                "zone": "press",
+            }
+        ],
+        false_alarms=[
+            {
+                "index": 0,
+                "timestamp_rel_s": 5.0,
+                "type": "ZONE_INTRUSION",
+                "severity": "HIGH",
+                "track_id": 2,
+                "zone": "crane",
+                "confidence": 0.88,
+            }
+        ],
+        data_provenance="SIMULATED",
+        qualification_note="Refused pass: simulated data",
+    )
+
+    out_file = generate_failure_analysis_report(
+        summary, output_path=tmp_path / "failure_analysis.md"
+    )
+    assert out_file.exists()
+    content = out_file.read_text(encoding="utf-8")
+    assert "Failure Modes & Root Cause Analysis" in content
+    assert "Missed Violation Incidents" in content
+    assert "False Alarm Incidents" in content
+    assert "SIMULATED" in content

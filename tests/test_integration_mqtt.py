@@ -8,13 +8,13 @@ import socket
 from pathlib import Path
 from typing import Any, Dict, List
 
+from sentinel.adapters.mqtt import SentinelMQTTClient
 from sentinel.adapters.pipegen import PipeGenAdapter
+from sentinel.adapters.storage.jsonl_log import JSONLAuditLog as IncidentSink
 from sentinel.config import FrameDimensions, MqttConfig, RulesConfig, ZoneDefinition, ZonesConfig
-from sentinel.incidents import IncidentSink
-from sentinel.models import Incident
-from sentinel.mqtt_client import SentinelMQTTClient
-from sentinel.rules import RuleEngine
-from sentinel.zones import ZoneManager
+from sentinel.domain.models import Incident
+from sentinel.domain.rules import RuleEngine
+from sentinel.domain.zones import ZoneManager
 from tools.simulate import SyntheticScenarioGenerator
 
 

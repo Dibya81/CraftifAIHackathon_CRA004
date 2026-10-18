@@ -274,6 +274,13 @@ def _evaluate_debounced_rule(
     if elapsed_s >= min_duration_s:
         rule_state.incident_raised = True
         rule_state.last_raised_ts = current_ts
+        explanation = {
+            "rule": incident_type,
+            "threshold": min_duration_s,
+            "frames_window": len(rule_state.accumulated_confs),
+            "confidences": [round(c, 3) for c in rule_state.accumulated_confs[-10:]],
+            "elapsed_s": round(elapsed_s, 2),
+        }
         return Incident.create(
             incident_type=incident_type,
             severity=severity,
@@ -282,6 +289,7 @@ def _evaluate_debounced_rule(
             confidence=rule_state.mean_confidence,
             duration_s=elapsed_s,
             zone=zone_id,
+            explanation=explanation,
         )
     return None
 
@@ -307,6 +315,14 @@ def _evaluate_zone_intrusion(
     rule_state.incident_raised = True
     rule_state.last_raised_ts = current_ts
 
+    explanation = {
+        "rule": "ZONE_INTRUSION",
+        "threshold": 0.0,
+        "frames_window": 1,
+        "confidences": [round(conf, 3)],
+        "zone": zone_id,
+    }
+
     return Incident.create(
         incident_type="ZONE_INTRUSION",
         severity=severity,
@@ -315,6 +331,7 @@ def _evaluate_zone_intrusion(
         confidence=conf,
         duration_s=0.0,
         zone=zone_id,
+        explanation=explanation,
     )
 
 
@@ -336,6 +353,15 @@ def _evaluate_danger_dwell(
     rule_state.record_violation(current_ts, conf)
     rule_state.last_raised_ts = current_ts
 
+    explanation = {
+        "rule": "DANGER_DWELL",
+        "threshold": dwell_duration,
+        "frames_window": len(rule_state.accumulated_confs),
+        "confidences": [round(c, 3) for c in rule_state.accumulated_confs[-10:]],
+        "zone": zone_id,
+        "dwell_duration_s": round(dwell_duration, 2),
+    }
+
     return Incident.create(
         incident_type="DANGER_DWELL",
         severity=severity,
@@ -344,6 +370,7 @@ def _evaluate_danger_dwell(
         confidence=rule_state.mean_confidence,
         duration_s=dwell_duration,
         zone=zone_id,
+        explanation=explanation,
     )
 
 

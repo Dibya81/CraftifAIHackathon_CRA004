@@ -5,9 +5,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from sentinel.adapters.video.clip_writer import EvidenceWriter, PrivacyViolationError
+from sentinel.adapters.video.ring_buffer import RingBuffer
 from sentinel.config import EvidenceConfig, PathsConfig, PrivacyConfig, SentinelConfig
-from sentinel.evidence import EvidenceWriter, PrivacyViolationError, RingBuffer
-from sentinel.models import Incident
+from sentinel.domain.models import Incident
 from tools.privacy_audit import run_privacy_audit
 
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from sentinel.adapters.pipegen import JsonFileMetadataTailer, PipeGenAdapter
-from sentinel.models import FrameMeta
+from sentinel.domain.models import FrameMeta
 
 
 @pytest.mark.tc("TC-16")

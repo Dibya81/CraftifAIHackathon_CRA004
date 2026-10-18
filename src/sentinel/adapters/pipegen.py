@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
-from sentinel.models import Box, Detection, FrameDimensions, FrameMeta
+from sentinel.domain.models import Box, Detection, FrameDimensions, FrameMeta
 
 
 class PipeGenAdapter:

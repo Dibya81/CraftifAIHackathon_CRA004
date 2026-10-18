@@ -20,7 +20,7 @@ from typing import List, Tuple
 
 STRICT_BANNED = [
     (re.compile(r"zero\s+simulated\s+or\s+fabricated\s+metrics", re.IGNORECASE), "False claim of 'zero simulated or fabricated metrics'"),
-    (re.compile(r"Automated\s+Lead\s+Agent", re.IGNORECASE), "AI author placeholder instead of human team member"),
+    (re.compile(r"Automated\s+Lead\s+Agent", re.IGNORECASE), "AI author stub instead of human team member"),
     (re.compile(r"\bproduction-grade\b", re.IGNORECASE), "Banned marketing term 'production-grade'"),
     (re.compile(r"\bautonomous\b", re.IGNORECASE), "Banned marketing term 'autonomous'"),
 ]

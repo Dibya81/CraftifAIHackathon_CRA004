@@ -31,7 +31,7 @@ from paho.mqtt.client import CallbackAPIVersion
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sentinel.models import Detection, FrameMeta
+from sentinel.domain.models import Detection, FrameMeta
 
 
 class Simulator:
@@ -296,8 +296,9 @@ def run_simulator(
                 if success:
                     jpeg_bytes = encoded.tobytes()
                     try:
-                        from sentinel.api import state as api_state
-                        api_state.relay.update_jpeg(jpeg_bytes)
+                        from sentinel.interfaces.api.app import state as api_state
+                        if hasattr(api_state, "relay") and api_state.relay:
+                            api_state.relay.update_jpeg(jpeg_bytes)
                     except Exception:
                         pass
                     try:

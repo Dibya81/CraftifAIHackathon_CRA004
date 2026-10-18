@@ -65,7 +65,11 @@ class MJPEGRelay:
     def is_active(self, timeout_s: float = 2.5) -> bool:
         """Returns True if a frame arrived within timeout_s."""
         with self._lock:
-            return (time.time() - self._latest_timestamp) < timeout_s if self._latest_timestamp > 0 else False
+            return (
+                (time.time() - self._latest_timestamp) < timeout_s
+                if self._latest_timestamp > 0
+                else False
+            )
 
     def measured_fps(self) -> Optional[float]:
         """Returns measured FPS over the last 2 seconds or None if inactive."""

@@ -70,7 +70,9 @@ def api(
 def run(
     services: str = typer.Option("all", help="Services to run: all, api, engine, evidence"),
     file: Optional[str] = typer.Option(None, "--file", help="Path to video file for REPLAY mode"),
-    sim: bool = typer.Option(False, "--sim", help="Run with continuous synthetic simulation stream"),
+    sim: bool = typer.Option(
+        False, "--sim", help="Run with continuous synthetic simulation stream"
+    ),
     host: str = typer.Option("0.0.0.0", help="Host interface to bind REST API"),
     port: int = typer.Option(8000, help="Port to bind REST API"),
 ):
@@ -91,10 +93,16 @@ def run(
             raise typer.Exit(code=1)
         os.environ["SENTINEL_MODE"] = "REPLAY"
         os.environ["SENTINEL_REPLAY_FILE"] = str(video_path)
-        typer.secho(f"SiteSentinel starting in REPLAY mode: {file}", fg=typer.colors.CYAN, bold=True)
+        typer.secho(
+            f"SiteSentinel starting in REPLAY mode: {file}", fg=typer.colors.CYAN, bold=True
+        )
     elif sim:
         os.environ["SENTINEL_MODE"] = "SIMULATED"
-        typer.secho("SiteSentinel starting in SIMULATED mode (25 FPS synthetic video + detections)", fg=typer.colors.YELLOW, bold=True)
+        typer.secho(
+            "SiteSentinel starting in SIMULATED mode (25 FPS synthetic video + detections)",
+            fg=typer.colors.YELLOW,
+            bold=True,
+        )
     else:
         os.environ["SENTINEL_MODE"] = "LIVE"
         typer.secho("SiteSentinel starting in LIVE mode", fg=typer.colors.GREEN, bold=True)
@@ -102,12 +110,13 @@ def run(
     # Replay background thread
     def replay_loop():
         import cv2
+
         time.sleep(1.0)  # Wait for API server to bind
         cap = cv2.VideoCapture(str(file))
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
         frame_interval = 1.0 / fps
         try:
-            from sentinel.api import state
+            from sentinel.interfaces.api.app import state
         except Exception:
             state = None
 
@@ -125,8 +134,16 @@ def run(
     def sim_loop():
         time.sleep(1.0)
         from tools.simulate import run_simulator
+
         while True:
-            for sc in ["compliant", "no_helmet", "restricted_entry", "danger_dwell", "crowd", "flicker"]:
+            for sc in [
+                "compliant",
+                "no_helmet",
+                "restricted_entry",
+                "danger_dwell",
+                "crowd",
+                "flicker",
+            ]:
                 try:
                     run_simulator(scenario=sc, fps=25.0, duration=15.0, use_mqtt=True)
                 except Exception:
@@ -140,7 +157,7 @@ def run(
         t.start()
 
     typer.echo(f"Starting SiteSentinel API on http://{host}:{port}")
-    uvicorn.run("sentinel.api:app", host=host, port=port, log_level="warning")
+    uvicorn.run("sentinel.interfaces.api.app:app", host=host, port=port, log_level="warning")
 
 
 @app.command()
@@ -286,6 +303,36 @@ def gc(
                 typer.echo(f"Error purging {clip}: {e}")
 
     typer.echo(f"🧹 GC complete: purged {purged_count} evidence files older than {days} days.")
+
+
+@app.command(name="verify-log")
+def verify_log(
+    path: str = typer.Option(
+        "logs/incidents.jsonl", "--path", "-p", help="Path to JSONL incidents log"
+    ),
+):
+    """Verify cryptographic hash chain integrity of append-only incidents JSONL log."""
+    log_file = Path(path)
+    if not log_file.exists():
+        typer.secho(f"Log file not found: {log_file}", fg=typer.colors.YELLOW)
+        raise typer.Exit(code=0)
+
+    audit_log = JSONLAuditLog(log_file)
+    valid, err = audit_log.verify_chain()
+    if not valid:
+        typer.secho(
+            "❌ TAMPER DETECTED: Log integrity chain verification failed!",
+            fg=typer.colors.RED,
+            bold=True,
+        )
+        typer.secho(f"   Details: {err}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    typer.secho(
+        f"✅ Log integrity chain verified: 0 tampering detected across {log_file}",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
 
 
 if __name__ == "__main__":

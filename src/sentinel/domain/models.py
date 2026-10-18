@@ -187,6 +187,9 @@ class Incident:
     acked_by: Optional[str] = None
     notes: List[Dict[str, Any]] = field(default_factory=list)
     evidence_status: str = "pending"  # pending | ready | partial | failed
+    explanation: Optional[Dict[str, Any]] = None
+    prev_hash: Optional[str] = None
+    hash: Optional[str] = None
 
     @classmethod
     def create(
@@ -207,6 +210,9 @@ class Incident:
         acked_by: Optional[str] = None,
         notes: Optional[List[Dict[str, Any]]] = None,
         evidence_status: str = "pending",
+        explanation: Optional[Dict[str, Any]] = None,
+        prev_hash: Optional[str] = None,
+        hash: Optional[str] = None,
     ) -> Incident:
         """Helper to create an Incident with generated UUID and UTC ISO timestamp if not provided."""
         if incident_id is None:
@@ -230,6 +236,9 @@ class Incident:
             acked_by=acked_by,
             notes=notes if notes is not None else [],
             evidence_status=evidence_status,
+            explanation=explanation,
+            prev_hash=prev_hash,
+            hash=hash,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -254,6 +263,9 @@ class Incident:
             acked_by=data.get("acked_by"),
             notes=data.get("notes", []),
             evidence_status=data.get("evidence_status", "pending"),
+            explanation=data.get("explanation"),
+            prev_hash=data.get("prev_hash"),
+            hash=data.get("hash"),
         )
 
 

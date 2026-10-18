@@ -55,13 +55,35 @@ class PersonPPEStatus:
 def associate_ppe(
     persons: List[Detection],
     ppe_detections: List[Detection],
-    head_region: Tuple[float, float] = (0.0, 0.25),
-    torso_region: Tuple[float, float] = (0.25, 0.70),
-    min_overlap: float = 0.20,
+    head_region: Optional[Union[Tuple[float, float], Any]] = None,
+    torso_region: Optional[Tuple[float, float]] = None,
+    min_overlap: Optional[float] = None,
+    *,
+    cfg: Optional[Any] = None,
 ) -> List[PersonPPEStatus]:
     """Associates PPE detections to candidate persons using anatomical region overlap."""
     if not persons:
         return []
+
+    if hasattr(head_region, "head_region") and cfg is None:
+        cfg = head_region
+        head_region = None
+
+    if cfg is not None:
+        h_reg = getattr(cfg, "head_region", (0.0, 0.25))
+        t_reg = getattr(cfg, "torso_region", (0.25, 0.70))
+        m_over = getattr(cfg, "min_overlap", 0.20)
+    else:
+        h_reg = (0.0, 0.25)
+        t_reg = (0.25, 0.70)
+        m_over = 0.20
+
+    if head_region is not None:
+        h_reg = head_region
+    if torso_region is not None:
+        t_reg = torso_region
+    if min_overlap is not None:
+        m_over = min_overlap
 
     statuses = [PersonPPEStatus(person=p) for p in persons]
 
@@ -69,8 +91,8 @@ def associate_ppe(
     no_helmets = [d for d in ppe_detections if d.class_name in {"no_helmet", "head"}]
     vests = [d for d in ppe_detections if d.class_name == "vest"]
 
-    head_top, head_bottom = head_region
-    torso_top, torso_bottom = torso_region
+    head_top, head_bottom = h_reg
+    torso_top, torso_bottom = t_reg
 
     # 1. Match helmets to head region
     _assign_ppe_to_persons(
@@ -78,7 +100,7 @@ def associate_ppe(
         statuses=statuses,
         ppe_items=helmets,
         region_func=lambda b: b.sub_region(head_top, head_bottom),
-        min_overlap=min_overlap,
+        min_overlap=m_over,
         assign_func=_assign_helmet,
     )
 
@@ -88,7 +110,7 @@ def associate_ppe(
         statuses=statuses,
         ppe_items=no_helmets,
         region_func=lambda b: b.sub_region(head_top, head_bottom),
-        min_overlap=min_overlap,
+        min_overlap=m_over,
         assign_func=_assign_no_helmet,
     )
 
@@ -103,7 +125,7 @@ def associate_ppe(
         statuses=statuses,
         ppe_items=vests,
         region_func=lambda b: b.sub_region(torso_top, torso_bottom),
-        min_overlap=min_overlap,
+        min_overlap=m_over,
         assign_func=_assign_vest,
     )
 
@@ -167,13 +189,31 @@ class TrackerPPEAssociator:
 
     def __init__(
         self,
-        head_region: Tuple[float, float] = (0.0, 0.25),
-        torso_region: Tuple[float, float] = (0.25, 0.70),
-        min_overlap: float = 0.20,
+        head_region: Optional[Union[Tuple[float, float], Any]] = None,
+        torso_region: Optional[Tuple[float, float]] = None,
+        min_overlap: Optional[float] = None,
+        *,
+        cfg: Optional[Any] = None,
     ) -> None:
-        self.head_region = head_region
-        self.torso_region = torso_region
-        self.min_overlap = min_overlap
+        if hasattr(head_region, "head_region") and cfg is None:
+            cfg = head_region
+            head_region = None
+
+        if cfg is not None:
+            self.head_region = getattr(cfg, "head_region", (0.0, 0.25))
+            self.torso_region = getattr(cfg, "torso_region", (0.25, 0.70))
+            self.min_overlap = getattr(cfg, "min_overlap", 0.20)
+        else:
+            self.head_region = (0.0, 0.25)
+            self.torso_region = (0.25, 0.70)
+            self.min_overlap = 0.20
+
+        if head_region is not None:
+            self.head_region = head_region
+        if torso_region is not None:
+            self.torso_region = torso_region
+        if min_overlap is not None:
+            self.min_overlap = min_overlap
 
     def associate(self, meta: Any, detections: List[Detection]) -> List[PersonPPEStatus]:
         persons = [d for d in detections if d.class_name == "person"]

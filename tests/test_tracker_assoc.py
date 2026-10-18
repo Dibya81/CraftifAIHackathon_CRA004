@@ -1,8 +1,8 @@
 import pytest
 
 from sentinel.config import AssociationConfig
-from sentinel.models import Box, Detection
-from sentinel.tracker_assoc import associate_ppe
+from sentinel.domain.association import associate_ppe
+from sentinel.domain.models import Box, Detection
 
 
 @pytest.mark.tc("TC-09")

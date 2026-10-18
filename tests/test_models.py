@@ -2,7 +2,7 @@
 
 import pytest
 
-from sentinel.models import Box, Incident
+from sentinel.domain.models import Box, Incident
 
 
 @pytest.mark.tc("TC-06")

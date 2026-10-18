@@ -1,8 +1,8 @@
 import pytest
 
 from sentinel.config import FrameDimensions, ZoneDefinition, ZonesConfig
-from sentinel.models import Box
-from sentinel.zones import ZoneManager
+from sentinel.domain.models import Box
+from sentinel.domain.zones import ZoneManager
 
 
 def make_test_manager():

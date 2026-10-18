@@ -83,6 +83,15 @@ def create_app(
         lifespan=lifespan,
     )
 
+    app.state.config = cfg
+    app.state.repository = repo
+    app.state.zone_manager = zm
+    app.state.mjpeg_relay = relay
+    app.state.relay = relay
+    app.state.ws_hub = ws_hub
+    app.state.mode = "SIMULATED"
+    app.state.replay_file = None
+
     # Global CORS
     app.add_middleware(
         CORSMiddleware,
@@ -346,6 +355,19 @@ def create_app(
             media_type="multipart/x-mixed-replace; boundary=frame",
         )
 
+    @router.get("/stream/status", include_in_schema=False)
+    def get_stream_status() -> Dict[str, Any]:
+        active = relay.is_active(timeout_s=3.0)
+        cur_fps = relay.measured_fps() if active else None
+        cur_lat = relay.measured_latency_ms() if active else None
+        return {
+            "active": active,
+            "fps": round(cur_fps, 1) if cur_fps is not None else None,
+            "latency_ms": round(cur_lat, 1) if cur_lat is not None else None,
+            "mode": getattr(app.state, "mode", "SIMULATED"),
+            "replay_file": getattr(app.state, "replay_file", None),
+        }
+
     # 5. Stats & System
     @router.get("/stats", response_model=StatsResponse)
     def get_stats(window: str = Query("24h")) -> StatsResponse:
@@ -418,6 +440,38 @@ def create_app(
             "status": "PASS" if passed else "FAIL",
             "findings_count": len(findings),
             "findings": findings,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+    @router.get("/system/log-integrity", include_in_schema=False)
+    def get_log_integrity() -> Dict[str, Any]:
+        log_path = Path(cfg.paths.incidents_log)
+        audit_log = JSONLAuditLog(log_path)
+        valid, err = audit_log.verify_chain()
+        return {
+            "status": "PASS" if valid else "FAIL",
+            "log_path": str(log_path),
+            "valid": valid,
+            "error": err,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+    @router.get("/evidence/ledger", include_in_schema=False)
+    def get_evidence_ledger() -> Dict[str, Any]:
+        ledger_path = Path("evidence/ledger.yaml")
+        if not ledger_path.exists():
+            raise HTTPException(status_code=404, detail="evidence/ledger.yaml not found")
+        import yaml
+
+        from tools.ledger import verify_ledger
+
+        with open(ledger_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        code, errs = verify_ledger(ledger_path)
+        return {
+            "verified": (code == 0),
+            "errors": errs,
+            "ledger": data,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -520,5 +574,6 @@ def _probe_gpu() -> Dict[str, Optional[float]]:
     return res
 
 
-# Global default app instance
+# Global default app instance and state
 app = create_app()
+state = app.state

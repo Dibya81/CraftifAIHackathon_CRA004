@@ -12,6 +12,7 @@ Domain logic rules:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from shapely.geometry import Point, Polygon
@@ -123,6 +124,13 @@ class ZoneManager:
             )
             zones_list.append(z)
         return cls(zones_list, ref_width=ref_w, ref_height=ref_h)
+
+    @classmethod
+    def from_file(cls, path: Union[str, Path] = "config/zones.json") -> ZoneManager:
+        from sentinel.config import load_zones_config
+
+        cfg = load_zones_config(path)
+        return cls(cfg)
 
     def get_zone_by_id(self, zone_id: str) -> Optional[Zone]:
         for z in self.zones:

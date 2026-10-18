@@ -1,9 +1,9 @@
 import pytest
 
 from sentinel.config import FrameDimensions, RulesConfig, ZoneDefinition, ZonesConfig
-from sentinel.models import Box, Detection, FrameMeta
-from sentinel.rules import RuleEngine
-from sentinel.zones import ZoneManager
+from sentinel.domain.models import Box, Detection, FrameMeta
+from sentinel.domain.rules import RuleEngine
+from sentinel.domain.zones import ZoneManager
 
 
 def make_test_engine(cooldown_s: float = 30.0) -> RuleEngine:
