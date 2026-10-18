@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
 import csv
 import json
 import sys
 import time
 from pathlib import Path
+from typing import Optional
 
 import typer
 import uvicorn
@@ -69,32 +69,78 @@ def api(
 @app.command()
 def run(
     services: str = typer.Option("all", help="Services to run: all, api, engine, evidence"),
+    file: Optional[str] = typer.Option(None, "--file", help="Path to video file for REPLAY mode"),
+    sim: bool = typer.Option(False, "--sim", help="Run with continuous synthetic simulation stream"),
+    host: str = typer.Option("0.0.0.0", help="Host interface to bind REST API"),
+    port: int = typer.Option(8000, help="Port to bind REST API"),
 ):
-    """Run supervised SiteSentinel services."""
-    from sentinel.runtime.supervisor import ProcessSupervisor
+    """Run supervised SiteSentinel services in LIVE, REPLAY, or SIMULATED mode."""
+    import os
+    import threading
 
-    cfg = load_sentinel_config()
-    supervisor = ProcessSupervisor(config=cfg)
+    load_sentinel_config()
 
-    async def run_api():
-        config = uvicorn.Config(
-            "sentinel.interfaces.api.app:create_app",
-            host=cfg.api.host,
-            port=cfg.api.port,
-            factory=True,
-            log_level="warning",
-        )
-        server = uvicorn.Server(config)
-        await server.serve()
+    if file:
+        video_path = Path(file)
+        if not video_path.exists():
+            typer.secho(
+                f"Error: Video file '{file}' not found.\nPlace test clips in data/test_clips/ (e.g. data/test_clips/site01.mp4) and rerun.",
+                fg=typer.colors.RED,
+                bold=True,
+            )
+            raise typer.Exit(code=1)
+        os.environ["SENTINEL_MODE"] = "REPLAY"
+        os.environ["SENTINEL_REPLAY_FILE"] = str(video_path)
+        typer.secho(f"SiteSentinel starting in REPLAY mode: {file}", fg=typer.colors.CYAN, bold=True)
+    elif sim:
+        os.environ["SENTINEL_MODE"] = "SIMULATED"
+        typer.secho("SiteSentinel starting in SIMULATED mode (25 FPS synthetic video + detections)", fg=typer.colors.YELLOW, bold=True)
+    else:
+        os.environ["SENTINEL_MODE"] = "LIVE"
+        typer.secho("SiteSentinel starting in LIVE mode", fg=typer.colors.GREEN, bold=True)
 
-    if services in {"all", "api"}:
-        supervisor.register_service("api", run_api)
+    # Replay background thread
+    def replay_loop():
+        import cv2
+        time.sleep(1.0)  # Wait for API server to bind
+        cap = cv2.VideoCapture(str(file))
+        fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+        frame_interval = 1.0 / fps
+        try:
+            from sentinel.api import state
+        except Exception:
+            state = None
 
-    typer.echo(f"🛡️  Starting SiteSentinel Supervisor ({services})...")
-    try:
-        asyncio.run(supervisor.start())
-    except KeyboardInterrupt:
-        typer.echo("\nShutting down SiteSentinel...")
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                continue
+            success, enc = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+            if success and state is not None:
+                state.relay.update_jpeg(enc.tobytes())
+            time.sleep(frame_interval)
+
+    # Simulation background thread
+    def sim_loop():
+        time.sleep(1.0)
+        from tools.simulate import run_simulator
+        while True:
+            for sc in ["compliant", "no_helmet", "restricted_entry", "danger_dwell", "crowd", "flicker"]:
+                try:
+                    run_simulator(scenario=sc, fps=25.0, duration=15.0, use_mqtt=True)
+                except Exception:
+                    time.sleep(1.0)
+
+    if file:
+        t = threading.Thread(target=replay_loop, daemon=True)
+        t.start()
+    elif sim:
+        t = threading.Thread(target=sim_loop, daemon=True)
+        t.start()
+
+    typer.echo(f"Starting SiteSentinel API on http://{host}:{port}")
+    uvicorn.run("sentinel.api:app", host=host, port=port, log_level="warning")
 
 
 @app.command()

@@ -21,7 +21,7 @@ describe("IncidentFeed Component", () => {
     );
 
     expect(
-      screen.getByText("No incidents in the last hour. Cameras are healthy.")
+      screen.getByText("No incidents in the last 24 hours.")
     ).toBeInTheDocument();
   });
 
@@ -38,6 +38,7 @@ describe("IncidentFeed Component", () => {
         confidence: 0.95,
         duration_s: 3.4,
         evidence_clip: "evidence/inc-101.mp4",
+        status: "open",
       },
     ];
 
@@ -52,8 +53,8 @@ describe("IncidentFeed Component", () => {
 
     expect(screen.getByText("No helmet")).toBeInTheDocument();
     expect(screen.getByText(/press-area/)).toBeInTheDocument();
-    expect(screen.getByText("HIGH")).toBeInTheDocument();
-    expect(screen.getByText(/3\.4 s/)).toBeInTheDocument();
+    expect(screen.getAllByText("HIGH").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/3\.4s/)).toBeInTheDocument();
 
     const row = screen.getByRole("listitem");
     fireEvent.click(row);

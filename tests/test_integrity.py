@@ -96,3 +96,52 @@ def test_tc30_mqtt_topic_contract_parity():
     assert cfg.mqtt.health_topic in arch_text, (
         f"health_topic '{cfg.mqtt.health_topic}' not documented in docs/ARCHITECTURE.md"
     )
+
+
+@pytest.mark.tc("TC-31")
+def test_tc31_banned_process_artifacts_and_strings_scan():
+    """TC-31: Scan tracked repository files to assert zero prohibited process artifacts or stub strings."""
+    import subprocess
+
+    repo_root = Path(".")
+    banned_patterns = [
+        (re.compile(r"T" r"ODO"), "T" + "ODO"),
+        (re.compile(r"F" r"IXME"), "F" + "IXME"),
+        (re.compile(r"(?i)l" r"orem"), "l" + "orem"),
+        (re.compile(r"(?i)p" r"laceholder"), "p" + "laceholder"),
+        (re.compile(r"P" r"hase\s+[0-9]"), "P" + "hase [0-9]"),
+        (re.compile(r"(?i)as\s+an\s+AI"), "as an " + "AI"),
+        (re.compile(r"BUILD_" r"PROMPT"), "BUILD_" + "PROMPT"),
+        (re.compile(r"\bP" r"RD\b"), "P" + "RD"),
+        (re.compile(r"(?i)mock\s+data"), "mock " + "data"),
+        (re.compile(r"(?i)coming\s+soon"), "coming " + "soon"),
+        (re.compile(r"\bT" r"BD\b"), "T" + "BD"),
+    ]
+
+    ignored_prefixes = ("node_modules/", "evidence/", "package-lock.json", "dashboard/package-lock.json", "JUDGE_REPORT.md")
+    ignored_exts = (".png", ".jpg", ".jpeg", ".webp", ".ico", ".woff", ".woff2", ".ttf", ".tar.gz", ".zip", ".pyc")
+
+    try:
+        res = subprocess.run(["git", "ls-files"], cwd=repo_root, capture_output=True, text=True, check=True)
+        tracked_files = [line.strip() for line in res.stdout.splitlines() if line.strip()]
+    except Exception:
+        pytest.skip("Git repository not accessible for ls-files scan")
+
+    violations = []
+    for rel_f in tracked_files:
+        if rel_f.startswith(ignored_prefixes) or rel_f.endswith(ignored_exts):
+            continue
+        file_path = repo_root / rel_f
+        if not file_path.is_file():
+            continue
+        try:
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
+            for pat, name in banned_patterns:
+                match = pat.search(content)
+                if match:
+                    violations.append(f"{rel_f}: found prohibited pattern '{name}' (matched: '{match.group(0)}')")
+        except Exception:
+            pass
+
+    assert len(violations) == 0, "Banned process artifact/stub pattern violations found:\n" + "\n".join(violations)
+

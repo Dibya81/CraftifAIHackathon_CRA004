@@ -1,13 +1,13 @@
 # SiteSentinel: Automated Requirements & Test Matrix
 
-Generated: `2026-10-17 18:12:41 UTC`  
-Execution Duration: `3.53 s`  
+Generated: `2026-10-17 20:32:20 UTC`  
+Execution Duration: `3.73 s`  
 
 | Test Case | Category | Title | Verification Status | Notes |
 |---|---|---|---|---|
-| **TC-01** | `specification` | Product Requirements Document and Specification Alignment | ✅ PASS | Automated Judge Verified |
+| **TC-01** | `specification` | System Architecture and Specification Alignment | ✅ PASS | Automated Judge Verified |
 | **TC-02** | `edge_optimization` | TensorRT Engine Comparison Inputs and Reports with Provenance | ✅ PASS | Automated Judge Verified |
-| **TC-03** | `hardware` | Hardware Environment and Pipeline Readiness Verification | ⚠️ SKIP_HARDWARE | Physical NVIDIA GPU required; see HUMAN_TODO.md |
+| **TC-03** | `hardware` | Hardware Environment and Pipeline Readiness Verification | ⚠️ SKIP_HARDWARE | Physical NVIDIA GPU required (documented in hardware notes) |
 | **TC-04** | `integrity` | PipeGen Export Immutability and Hash Manifest Verification | ✅ PASS | Automated Judge Verified |
 | **TC-05** | `integrity` | Static Code Scan for Prohibited Writes to pipegen/export | ✅ PASS | Automated Judge Verified |
 | **TC-06** | `domain` | Domain Box Geometry, Coordinate Rectification, and IoA | ✅ PASS | Automated Judge Verified |
@@ -26,12 +26,13 @@ Execution Duration: `3.53 s`
 | **TC-19** | `api` | FastAPI REST and WebSocket Service Contract | ✅ PASS | Automated Judge Verified |
 | **TC-20** | `video` | MJPEG Video Stream Relay and Zone Snapshot Generation | ✅ PASS | Automated Judge Verified |
 | **TC-21** | `evaluation` | Offline Evaluation Interval Matcher and Accuracy Calculation | ✅ PASS | Automated Judge Verified |
-| **TC-22** | `evaluation` | Offline Evaluation Threshold Sweep and AC-5 Verification | ✅ PASS | Automated Judge Verified |
-| **TC-23** | `edge_optimization` | TensorRT Edge Optimization Report and AC-6 Verification | ✅ PASS | Automated Judge Verified |
+| **TC-22** | `evaluation` | Offline Evaluation Parameter Sweep and Detection Accuracy Verification | ✅ PASS | Automated Judge Verified |
+| **TC-23** | `edge_optimization` | TensorRT Edge Optimization Speedup and Accuracy Verification | ✅ PASS | Automated Judge Verified |
 | **TC-24** | `observability` | Structured Logging, Correlation IDs, and Health Telemetry | ✅ PASS | Automated Judge Verified |
 | **TC-25** | `performance` | Violation Detection Latency under 3.0 Seconds | ✅ PASS | Automated Judge Verified |
 | **TC-26** | `performance` | Rule Engine High-Throughput CPU Benchmark | ✅ PASS | Automated Judge Verified |
 | **TC-27** | `resilience` | Fault Injection, Outbox Resilience, and Zero Incident Loss | ✅ PASS | Automated Judge Verified |
 | **TC-28** | `resilience` | Sustained Stream Memory Boundedness and Track Purging Soak | ✅ PASS | Automated Judge Verified |
-| **TC-29** | `hardware` | Live Hardware Pipeline Verification Script | ⚠️ SKIP_HARDWARE | Physical NVIDIA GPU required; see HUMAN_TODO.md |
+| **TC-29** | `hardware` | Live Hardware Pipeline Verification Script | ⚠️ SKIP_HARDWARE | Physical NVIDIA GPU required (documented in hardware notes) |
 | **TC-30** | `contract` | MQTT Topic Contract Parity with Architecture Documentation | ✅ PASS | Automated Judge Verified |
+| **TC-31** | `integrity` | Clean Repository Artifact and Banned Pattern Scan | ✅ PASS | Automated Judge Verified |

@@ -1,0 +1,167 @@
+/* Radix Switch */
+.switchRoot {
+  width: 36px;
+  height: 20px;
+  background-color: var(--border-strong);
+  border-radius: var(--radius-full);
+  position: relative;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--motion-fast);
+}
+
+.switchRoot[data-state="checked"] {
+  background-color: var(--info);
+}
+
+.switchThumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: var(--surface-raised);
+  border-radius: var(--radius-full);
+  transition: transform var(--motion-fast);
+  transform: translateX(2px);
+  will-change: transform;
+}
+
+.switchRoot[data-state="checked"] .switchThumb {
+  transform: translateX(18px);
+}
+
+/* Tooltip */
+.tooltipContent {
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: var(--text-small);
+  line-height: var(--line-small);
+  color: var(--text-inverse);
+  background-color: var(--text);
+  box-shadow: var(--shadow-popover);
+  user-select: none;
+  z-index: 9999;
+}
+
+/* Dialog Overlay and Content */
+.dialogOverlay {
+  background-color: rgba(16, 22, 27, 0.6);
+  position: fixed;
+  inset: 0;
+  animation: overlayShow var(--motion-fast);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.dialogContent {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-dialog);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 680px;
+  max-height: 85vh;
+  padding: var(--space-6);
+  animation: contentShow var(--motion-normal);
+  z-index: 1001;
+  overflow-y: auto;
+}
+
+@keyframes overlayShow {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes contentShow {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.98); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Tabs */
+.tabsList {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  gap: var(--space-4);
+}
+
+.tabsTrigger {
+  all: unset;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--text-muted);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  position: relative;
+  transition: color var(--motion-fast);
+}
+
+.tabsTrigger:hover {
+  color: var(--text);
+}
+
+.tabsTrigger[data-state="active"] {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.tabsTrigger[data-state="active"]::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--info);
+}
+
+/* Dense Table */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-raised);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small);
+  text-align: left;
+}
+
+.table th {
+  background-color: var(--surface);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background-color: var(--surface);
+}
+
+.numCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}

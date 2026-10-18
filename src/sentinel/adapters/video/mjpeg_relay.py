@@ -24,6 +24,7 @@ class MJPEGRelay:
         self._latest_jpeg: Optional[bytes] = None
         self._latest_frame: Optional[np.ndarray] = None
         self._latest_timestamp: float = 0.0
+        self._frame_times: list[float] = []
 
     def update_frame(self, frame: np.ndarray, timestamp: Optional[float] = None) -> None:
         """Encodes frame to JPEG and caches it for snapshots and MJPEG streaming."""
@@ -39,6 +40,52 @@ class MJPEGRelay:
                 self._latest_jpeg = jpeg_bytes
                 self._latest_frame = frame.copy()
                 self._latest_timestamp = ts
+                now = time.time()
+                self._frame_times.append(now)
+                self._frame_times = [t for t in self._frame_times if now - t <= 2.0]
+
+    def update_jpeg(self, jpeg_bytes: bytes, timestamp: Optional[float] = None) -> None:
+        """Updates relay directly from encoded JPEG bytes."""
+        if not jpeg_bytes:
+            return
+        ts = timestamp if timestamp is not None else time.time()
+        with self._lock:
+            self._latest_jpeg = jpeg_bytes
+            self._latest_timestamp = ts
+            now = time.time()
+            self._frame_times.append(now)
+            self._frame_times = [t for t in self._frame_times if now - t <= 2.0]
+
+    @property
+    def last_frame_time(self) -> float:
+        """Returns the timestamp of the latest frame."""
+        with self._lock:
+            return self._latest_timestamp
+
+    def is_active(self, timeout_s: float = 2.5) -> bool:
+        """Returns True if a frame arrived within timeout_s."""
+        with self._lock:
+            return (time.time() - self._latest_timestamp) < timeout_s if self._latest_timestamp > 0 else False
+
+    def measured_fps(self) -> Optional[float]:
+        """Returns measured FPS over the last 2 seconds or None if inactive."""
+        with self._lock:
+            now = time.time()
+            self._frame_times = [t for t in self._frame_times if now - t <= 2.0]
+            if len(self._frame_times) < 2:
+                return None
+            duration = self._frame_times[-1] - self._frame_times[0]
+            if duration <= 0:
+                return None
+            return round((len(self._frame_times) - 1) / duration, 1)
+
+    def measured_latency_ms(self) -> Optional[float]:
+        """Returns latency in milliseconds between frame timestamp and now, or None if inactive."""
+        with self._lock:
+            if self._latest_timestamp <= 0 or (time.time() - self._latest_timestamp) > 2.5:
+                return None
+            delta = max(0.0, time.time() - self._latest_timestamp)
+            return round(delta * 1000.0, 1)
 
     def get_snapshot_jpeg(self) -> Optional[bytes]:
         """Returns the latest JPEG snapshot bytes."""

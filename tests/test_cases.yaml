@@ -1,9 +1,9 @@
 version: "1.0"
 test_cases:
   TC-01:
-    title: "Product Requirements Document and Specification Alignment"
+    title: "System Architecture and Specification Alignment"
     category: "specification"
-    description: "Verify PRD sections, acceptance criteria, and schema alignment."
+    description: "Verify system architecture, requirement coverage, and schema alignment."
   TC-02:
     title: "TensorRT Engine Comparison Inputs and Reports with Provenance"
     category: "edge_optimization"
@@ -85,11 +85,11 @@ test_cases:
     category: "evaluation"
     description: "Replay detections, match to ground-truth intervals within tolerance, compute precision, recall, and F1."
   TC-22:
-    title: "Offline Evaluation Threshold Sweep and AC-5 Verification"
+    title: "Offline Evaluation Parameter Sweep and Detection Accuracy Verification"
     category: "evaluation"
     description: "Parameter sweep over min_duration_s and min_overlap, flagging REAL vs SIMULATED provenance."
   TC-23:
-    title: "TensorRT Edge Optimization Report and AC-6 Verification"
+    title: "TensorRT Edge Optimization Speedup and Accuracy Verification"
     category: "edge_optimization"
     description: "Verify INT8 vs FP16 speedup >= 1.25x and mAP drop <= 0.02 on edge silicon profile."
   TC-24:
@@ -120,3 +120,7 @@ test_cases:
     title: "MQTT Topic Contract Parity with Architecture Documentation"
     category: "contract"
     description: "Assert config topic names match those documented in docs/ARCHITECTURE.md."
+  TC-31:
+    title: "Clean Repository Artifact and Banned Pattern Scan"
+    category: "integrity"
+    description: "Scan tracked repository files to assert zero prohibited process artifacts or stub strings."

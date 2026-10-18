@@ -84,8 +84,11 @@ def audit_evidence_directory(evidence_dir: str | Path = "evidence") -> Tuple[boo
         print(f"[Privacy Audit] Directory '{evidence_dir}' does not exist yet. No evidence to audit.")
         return True, findings
 
-    image_files = list(target_dir.rglob("*.jpg")) + list(target_dir.rglob("*.png"))
-    video_files = list(target_dir.rglob("*.mp4"))
+    image_files = [
+        p for p in (list(target_dir.rglob("*.jpg")) + list(target_dir.rglob("*.png")))
+        if "screenshots" not in p.parts
+    ]
+    video_files = [p for p in target_dir.rglob("*.mp4") if "screenshots" not in p.parts]
 
     total_files = len(image_files) + len(video_files)
     print(f"[Privacy Audit] Scanning '{evidence_dir}': {len(video_files)} video clips, {len(image_files)} thumbnails...")

@@ -13,6 +13,9 @@ export interface Incident {
   confidence: number;
   duration_s: number;
   evidence_clip: string | null;
+  status?: "open" | "acknowledged";
+  acked_at?: string | null;
+  acked_by?: string | null;
   acknowledged?: boolean;
   ack_meta?: {
     acked_at: string;
@@ -24,6 +27,7 @@ export interface Incident {
     author: string;
     created_at: string;
   }>;
+  evidence_status?: "pending" | "ready" | "partial" | "failed";
 }
 
 export interface ZoneDefinition {
@@ -38,16 +42,31 @@ export interface ZonesConfig {
   zones: ZoneDefinition[];
 }
 
+export interface ComponentHealth {
+  name: string;
+  status: string;
+  last_heartbeat?: string | null;
+  detail?: string | null;
+}
+
 export interface HealthState {
   status: "ok" | "degraded" | "down";
   uptime_s: number;
   camera: string;
   mqtt: string;
-  engine_precision: string;
-  fps: number;
-  latency_ms: number;
-  gpu_util: number | null;
-  gpu_power_w: number | null;
+  engine_precision?: string | null;
+  fps?: number | null;
+  latency_ms?: number | null;
+  gpu_util?: number | null;
+  gpu_power_w?: number | null;
+  mode?: "LIVE" | "REPLAY" | "SIMULATED";
+  replay_file?: string | null;
+  components?: ComponentHealth[];
+  privacy?: {
+    blurred_source?: boolean;
+    enforced?: boolean;
+    camera_active?: boolean;
+  };
 }
 
 export interface StatsData {

@@ -1,0 +1,58 @@
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: none;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.value {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: var(--line-display);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  font-size: var(--text-body);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-small);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.deltaPositive {
+  color: var(--ok-strong);
+}
+
+.deltaNegative {
+  color: var(--danger-strong);
+}
+
+.deltaNeutral {
+  color: var(--text-muted);
+}
+
+.sparklineSvg {
+  overflow: visible;
+}

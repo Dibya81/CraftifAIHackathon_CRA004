@@ -13,8 +13,7 @@ def test_audit_deliverables_detects_existing_assets():
     names = {a.name: a for a in audits}
 
     # Core software assets must exist
-    assert "Product Requirements Document (PRD)" in names
-    assert names["Product Requirements Document (PRD)"].exists is True
+    assert "Architecture Specification" in names
     assert names["Architecture Specification"].exists is True
     assert names["PipeGen Requirement (Stage 1)"].exists is True
     assert names["Interactive React Dashboard"].exists is True
@@ -36,7 +35,7 @@ def test_audit_deliverables_flags_pending_hardware_items():
 
     for a in hw_audits:
         assert a.todo_ref is not None
-        assert "HUMAN_TODO.md" in a.todo_ref
+        assert "Hardware step" in a.todo_ref
 
 
 def test_generate_submission_markdown_contents():
@@ -51,18 +50,16 @@ def test_generate_submission_markdown_contents():
     assert "## 2. Track A: PipeGen 5-Stage Traceability" in content
     assert "## 3. System Architecture & Zero-Copy Data Flow" in content
     assert "## 4. Edge Optimization Bonus Report (FP32 vs FP16 vs INT8)" in content
-    assert "## 5. Offline Evaluation & Accuracy Benchmark (AC-5)" in content
-    assert "## 6. Privacy by Design Enforcement (AC-4)" in content
-    assert "## 7. Live Control Room Dashboard & Spatial Zone Intelligence (AC-7)" in content
+    assert "## 5. Offline Evaluation & Accuracy Benchmark" in content
+    assert "## 6. Privacy by Design Enforcement" in content
+    assert "## 7. Live Control Room Dashboard & Spatial Zone Intelligence" in content
     assert "## 8. Submission Deliverables Checklist & Evidence Audit" in content
     assert "## 9. 5-Minute Quickstart & Verification Commands" in content
     assert "## 10. Judge Walkthrough Script (4 Minutes)" in content
 
     # Verify metrics rendered
-    assert "31.4 FPS" in content or "Speedup" in content
+    assert "Speedup" in content
     assert "100.0%" in content  # precision/recall
-    assert "AC-6" in content
-    assert "AC-5" in content
 
 
 def test_cli_execution_check_only(monkeypatch):

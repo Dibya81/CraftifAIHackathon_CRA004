@@ -11,12 +11,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, dataclass
 import datetime
 import json
-from pathlib import Path
 import sys
-from typing import Any, Dict, Optional, Tuple
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))

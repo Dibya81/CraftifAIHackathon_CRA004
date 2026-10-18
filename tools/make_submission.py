@@ -1,12 +1,12 @@
 """Submission package compiler for SiteSentinel (Embedded SF Hackathon, Track A: PipeGen).
 
 Collects:
-- PRD requirements and problem statement
+- Architecture specification and problem statement
 - Architecture document and SVG diagram
 - PipeGen requirement text (Stage 1)
 - Pipeline IR diagram and TensorRT speed reports (flags missing hardware artifacts loudly)
-- Evaluation baseline report (AC-5: precision, recall, alert latency)
-- Edge optimization comparison report (AC-6: FP32 vs FP16 vs INT8)
+- Evaluation baseline report (precision, recall, alert latency)
+- Edge optimization comparison report (FP32 vs FP16 vs INT8)
 - Incident log sample and privacy-blurred evidence clip
 - Generates SUBMISSION.md with complete traceability and verification evidence.
 """
@@ -43,13 +43,6 @@ class SubmissionCollector:
         """Audits all expected submission artifacts across core software and physical hardware deliverables."""
         checklist = [
             # Core Software Deliverables
-            (
-                "Product Requirements Document (PRD)",
-                "docs/PRD.md",
-                "Specification",
-                False,
-                None,
-            ),
             (
                 "Architecture Specification",
                 "docs/ARCHITECTURE.md",
@@ -154,28 +147,28 @@ class SubmissionCollector:
                 "reports/pipeline_ir.png",
                 "PipeGen Integration",
                 True,
-                "HUMAN_TODO.md §1: Stage 2 DeepStream graph screenshot",
+                "Hardware step: Stage 2 DeepStream graph screenshot",
             ),
             (
                 "TensorRT FP16 Speed Report (CLI)",
                 "reports/speed_report_fp16.txt",
                 "PipeGen Integration",
                 True,
-                "HUMAN_TODO.md §1: Stage 3 TensorRT FP16 engine export",
+                "Hardware step: Stage 3 TensorRT FP16 engine export",
             ),
             (
                 "TensorRT INT8 Speed Report (CLI)",
                 "reports/speed_report_int8.txt",
                 "Edge Optimization",
                 True,
-                "HUMAN_TODO.md §1: Stage 4 TensorRT INT8 engine export",
+                "Hardware step: Stage 4 TensorRT INT8 engine export",
             ),
             (
                 "2-Minute Offline Backup Demo Video",
                 "demo/backup_demo.mp4",
                 "Demo & Presentation",
                 True,
-                "HUMAN_TODO.md §3: Record 2-minute walkthrough video",
+                "Hardware step: Record 2-minute walkthrough video",
             ),
         ]
 
@@ -331,7 +324,7 @@ class SubmissionCollector:
             "| **Stage 3** | **Model Selection** | Multi-class PPE detector compiled to FP16 TensorRT engine ([`reports/engine_inputs.yaml`](file:///reports/engine_inputs.yaml)) | Verified |"
         )
         lines.append(
-            "| **Stage 4** | **Compiler & Quantizer** | INT8 Entropy-calibrated engine with quantified accuracy parity ([`reports/engine_comparison.md`](file:///reports/engine_comparison.md)) | Verified (AC-6 PASS) |"
+            "| **Stage 4** | **Compiler & Quantizer** | INT8 Entropy-calibrated engine with quantified accuracy parity ([`reports/engine_comparison.md`](file:///reports/engine_comparison.md)) | Verified (Speedup >= 1.25x) |"
         )
         lines.append(
             "| **Stage 5** | **Export Application** | Clean runtime export in [`pipegen/export/`](file:///pipegen/export/), consumed via MQTT, JSONL, and RTSP | Frozen & Untouched |"
@@ -373,7 +366,7 @@ class SubmissionCollector:
         lines.append("- **Component Reference:** [`docs/ARCHITECTURE.md`](file:///docs/ARCHITECTURE.md)")
         lines.append("")
 
-        # Section 4: Edge Optimization Bonus Report (AC-6)
+        # Section 4: Edge Optimization Bonus Report
         lines.append("## 4. Edge Optimization Bonus Report (FP32 vs FP16 vs INT8)")
         lines.append("")
         lines.append(
@@ -408,7 +401,7 @@ class SubmissionCollector:
             f"- **Accuracy Trade-off:** mAP drop of only **{int8_vs_fp16.get('map_delta', -0.005)}** (0.5% delta vs allowable 2.0% budget)."
         )
         lines.append(
-            "- **Acceptance Criterion AC-6:** **PASS** (Speedup >= 1.25x and mAP drop <= 0.02)."
+            "- **Edge Optimization Thresholds:** **PASS** (Speedup >= 1.25x and mAP drop <= 0.02)."
         )
         lines.append("")
         lines.append(
@@ -418,8 +411,8 @@ class SubmissionCollector:
         )
         lines.append("")
 
-        # Section 5: Offline Evaluation & Benchmark Accuracy (AC-5)
-        lines.append("## 5. Offline Evaluation & Accuracy Benchmark (AC-5)")
+        # Section 5: Offline Evaluation & Benchmark Accuracy
+        lines.append("## 5. Offline Evaluation & Accuracy Benchmark")
         lines.append("")
         lines.append(
             "Safety intelligence requires verifiable precision and recall. SiteSentinel provides an offline evaluation harness "
@@ -428,7 +421,7 @@ class SubmissionCollector:
         lines.append("")
 
         metrics = eval_base.get("metrics", {})
-        lines.append("| Metric | Evaluated Value | PRD Target / AC-5 Requirement | Status |")
+        lines.append("| Metric | Evaluated Value | Benchmark Requirement | Status |")
         lines.append("|---|---|---|---|")
         lines.append(f"| **Precision** | **{metrics.get('precision', 1.0) * 100:.1f}%** | >= 80.0% | **PASS** |")
         lines.append(f"| **Recall** | **{metrics.get('recall', 1.0) * 100:.1f}%** | >= 85.0% | **PASS** |")
@@ -450,8 +443,8 @@ class SubmissionCollector:
         )
         lines.append("")
 
-        # Section 6: Privacy by Design (AC-4)
-        lines.append("## 6. Privacy by Design Enforcement (AC-4)")
+        # Section 6: Privacy by Design
+        lines.append("## 6. Privacy by Design Enforcement")
         lines.append("")
         lines.append(
             "Worker privacy is a non-negotiable core architectural invariant. SiteSentinel enforces privacy at the system level:"
@@ -470,8 +463,8 @@ class SubmissionCollector:
         )
         lines.append("")
 
-        # Section 7: Live Dashboard & Spatial Zone Intelligence (AC-7)
-        lines.append("## 7. Live Control Room Dashboard & Spatial Zone Intelligence (AC-7)")
+        # Section 7: Live Dashboard & Spatial Zone Intelligence
+        lines.append("## 7. Live Control Room Dashboard & Spatial Zone Intelligence")
         lines.append("")
         lines.append(
             "The SiteSentinel dashboard ([`dashboard/`](file:///dashboard/)) is built with React 18, TypeScript, and pure CSS "
@@ -487,7 +480,7 @@ class SubmissionCollector:
             "- **ZoneEditor:** Live click-to-plot polygon authoring tool over current camera snapshots with atomic `PUT /api/zones` updates and instant rule engine hot-reloading."
         )
         lines.append(
-            "- **IncidentFeed & Modal:** Low-latency ARIA live region stream updating in **<1s of MQTT publish** (AC-7). Clicking an incident opens the modal with face-blurred video playback, officer acknowledgement, and audit note thread."
+            "- **IncidentFeed & Drawer:** Low-latency stream updating in **<1s of MQTT publish**. Selecting an incident opens the drawer with face-blurred video playback, officer acknowledgement, and audit note thread."
         )
         lines.append(
             "- **ReportsView & SystemView:** Zone compliance % analytics, hourly violation distributions, CSV export, and Jetson Orin FP32/FP16/INT8 hardware comparison table."
@@ -515,7 +508,7 @@ class SubmissionCollector:
         if missing_hw:
             lines.append("> [!IMPORTANT]\n> **Booth & Hardware Inspection Checklist:**  \n"
                          "> The software stack runs fully offline and headless against fixtures. The following artifacts "
-                         "are produced during physical booth check-in as outlined in [`HUMAN_TODO.md`](file:///HUMAN_TODO.md):")
+                         "are produced during physical booth check-in:")
             for m in missing_hw:
                 lines.append(f"> - **{m.name}:** {m.todo_ref}")
             lines.append("")

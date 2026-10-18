@@ -1,10 +1,20 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  AlertOctagon,
+  AlertTriangle,
+  Info,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { Incident } from "../types";
+import { Switch, SeverityBadge, ZoneBadge } from "../design/primitives";
+import { useAppStore } from "../state/useAppStore";
 
 interface IncidentFeedProps {
   incidents: Incident[];
   selectedIncidentId: string | null;
   onSelectIncident: (inc: Incident) => void;
+  onAcknowledge?: (id: string) => void;
 }
 
 export const formatIncidentName = (type: string): string => {
@@ -27,75 +37,244 @@ export const getSeverityBadge = (severity: string) => {
     case "HIGH":
       return {
         label: "HIGH",
-        icon: "⚠️",
-        color: "var(--hazard-orange)",
-        bg: "var(--hazard-orange-light)",
+        icon: <AlertOctagon size={14} />,
+        color: "var(--danger-strong)",
+        bg: "var(--danger-subtle)",
       };
     case "MEDIUM":
       return {
         label: "MEDIUM",
-        icon: "⚡",
-        color: "var(--caution-amber)",
-        bg: "var(--caution-amber-light)",
+        icon: <AlertTriangle size={14} />,
+        color: "var(--warn-strong)",
+        bg: "var(--warn-subtle)",
       };
     default:
       return {
         label: "LOW",
-        icon: "ℹ️",
-        color: "var(--steel-700)",
-        bg: "var(--concrete-100)",
+        icon: <Info size={14} />,
+        color: "var(--info-strong)",
+        bg: "var(--info-subtle)",
       };
   }
 };
+
+function formatRelativeTime(isoString: string): string {
+  try {
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return `${Math.max(1, diffSec)}s ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}h ago`;
+    const diffDay = Math.floor(diffHour / 24);
+    return `${diffDay}d ago`;
+  } catch {
+    return isoString;
+  }
+}
+
+function formatAbsoluteTime(isoString: string): string {
+  try {
+    const d = new Date(isoString);
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return `${d.toLocaleString()} (${tz})`;
+  } catch {
+    return isoString;
+  }
+}
 
 export const IncidentFeed: React.FC<IncidentFeedProps> = ({
   incidents,
   selectedIncidentId,
   onSelectIncident,
+  onAcknowledge,
 }) => {
+  const { soundEnabled, setSoundEnabled } = useAppStore();
+  const [unackOnly, setUnackOnly] = useState<boolean>(false);
+  const [severityFilter, setSeverityFilter] = useState<string>("ALL");
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  const feedListRef = useRef<HTMLDivElement>(null);
+
+  // Filtered incidents
+  const filtered = incidents.filter((inc) => {
+    if (unackOnly && inc.status === "acknowledged") return false;
+    if (severityFilter !== "ALL" && inc.severity !== severityFilter) return false;
+    return true;
+  });
+
+  const openCount = incidents.filter((i) => i.status === "open").length;
+  const ackedCount = incidents.filter((i) => i.status === "acknowledged").length;
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)) {
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusedIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusedIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Enter" && filtered[focusedIndex]) {
+        e.preventDefault();
+        onSelectIncident(filtered[focusedIndex]);
+      } else if (e.key.toLowerCase() === "a" && filtered[focusedIndex] && onAcknowledge) {
+        e.preventDefault();
+        onAcknowledge(filtered[focusedIndex].incident_id);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [filtered, focusedIndex, onSelectIncident, onAcknowledge]);
+
   return (
     <aside
-      aria-label="Incident feed"
+      aria-label="Incidents"
       style={{
-        backgroundColor: "var(--concrete-50)",
-        borderRadius: "var(--radius-md)",
-        padding: "16px",
+        backgroundColor: "var(--surface)",
+        borderRadius: "6px",
+        border: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        boxShadow: "var(--shadow-sm)",
+        overflow: "hidden",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-        <h2 style={{ fontSize: "18px", color: "var(--steel-900)" }}>Incidents</h2>
-        <span style={{ fontSize: "12px", color: "var(--steel-700)", fontWeight: 600 }}>
-          {incidents.length} recorded
-        </span>
+      {/* Header Line */}
+      <div
+        style={{
+          padding: "10px 14px",
+          borderBottom: "1px solid var(--border)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+          <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)", margin: 0 }}>
+            Incidents
+          </h2>
+          <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+            {openCount} open, {ackedCount} acknowledged
+          </span>
+        </div>
+
+        <button
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          title={soundEnabled ? "Alert sound on — click to mute" : "Alert sound off — click to enable"}
+          aria-label={soundEnabled ? "Alert sound on" : "Alert sound off"}
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            color: soundEnabled ? "var(--text)" : "var(--text-muted)",
+            padding: "3px 8px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            fontSize: "11px",
+          }}
+        >
+          {soundEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+          <span>{soundEnabled ? "Sound on" : "Alert sound off"}</span>
+        </button>
       </div>
 
-      {/* ARIA Live Region for Screen Readers */}
+      {/* Filter Bar */}
       <div
+        style={{
+          padding: "8px 14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--surface)",
+          gap: "8px",
+        }}
+      >
+        <div style={{ display: "flex", gap: "4px" }}>
+          {["ALL", "HIGH", "MEDIUM", "LOW"].map((sev) => (
+            <button
+              key={sev}
+              onClick={() => setSeverityFilter(sev)}
+              style={{
+                padding: "2px 6px",
+                borderRadius: "3px",
+                border: "1px solid var(--border)",
+                backgroundColor: severityFilter === sev ? "var(--text)" : "transparent",
+                color: severityFilter === sev ? "var(--surface)" : "var(--text-muted)",
+                fontSize: "11px",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              {sev === "ALL" ? "All" : sev}
+            </button>
+          ))}
+        </div>
+
+        <Switch
+          id="unack-switch"
+          checked={unackOnly}
+          onCheckedChange={setUnackOnly}
+          label="Unacknowledged only"
+        />
+      </div>
+
+      {/* Table Column Headers */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "68px 1fr 85px 50px 75px",
+          gap: "6px",
+          padding: "6px 14px",
+          fontSize: "11px",
+          fontWeight: 600,
+          color: "var(--text-muted)",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--surface)",
+        }}
+      >
+        <span>Severity</span>
+        <span>Type</span>
+        <span>Zone</span>
+        <span style={{ textAlign: "right" }}>Duration</span>
+        <span style={{ textAlign: "right" }}>Time</span>
+      </div>
+
+      {/* Incident List Rows */}
+      <div
+        ref={feedListRef}
         role="list"
         aria-live="polite"
-        aria-atomic="false"
-        style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px" }}
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
-        {incidents.length === 0 ? (
+        {filtered.length === 0 ? (
           <div
             style={{
               padding: "32px 16px",
               textAlign: "center",
-              color: "var(--steel-700)",
-              fontSize: "14px",
+              color: "var(--text-muted)",
+              fontSize: "12px",
             }}
           >
-            No incidents in the last hour. Cameras are healthy.
+            No incidents in the last 24 hours.
           </div>
         ) : (
-          incidents.map((inc) => {
-            const badge = getSeverityBadge(inc.severity);
-            const isSelected = selectedIncidentId === inc.incident_id;
-            const isAcked = !!inc.acknowledged;
+          filtered.map((inc, idx) => {
+            const isSelected = selectedIncidentId === inc.incident_id || focusedIndex === idx;
+            const isAcked = inc.status === "acknowledged";
 
             return (
               <div
@@ -103,75 +282,41 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
                 role="listitem"
                 tabIndex={0}
                 onClick={() => onSelectIncident(inc)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onSelectIncident(inc);
-                  }
-                }}
-                className="animate-slide-in"
+                onFocus={() => setFocusedIndex(idx)}
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "68px 1fr 85px 50px 75px",
+                  gap: "6px",
+                  padding: "8px 14px",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "10px 12px",
-                  backgroundColor: isSelected ? "var(--signal-blue-light)" : "var(--white)",
-                  border: isSelected ? "1px solid var(--signal-blue)" : "1px solid rgba(0,0,0,0.06)",
-                  borderLeft: `4px solid ${badge.color}`,
-                  borderRadius: "var(--radius-sm)",
+                  borderBottom: "1px solid var(--border)",
+                  backgroundColor: isSelected ? "var(--surface-raised, rgba(255,255,255,0.05))" : "transparent",
                   cursor: "pointer",
-                  opacity: isAcked ? 0.7 : 1,
-                  transition: "background-color 150ms ease",
+                  fontSize: "12px",
+                  opacity: isAcked ? 0.6 : 1,
+                  transition: "background 0.15s ease",
+                  userSelect: "none",
                 }}
               >
-                {/* Left Info */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ fontSize: "14px" }}>{badge.icon}</span>
-                    <span style={{ fontWeight: isAcked ? 500 : 700, fontSize: "14px", color: "var(--steel-900)" }}>
-                      {formatIncidentName(inc.type)}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        padding: "1px 6px",
-                        borderRadius: "2px",
-                        backgroundColor: badge.bg,
-                        color: badge.color,
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {badge.label}
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: "12px", color: "var(--steel-700)", display: "flex", gap: "8px" }}>
-                    <span>{inc.zone || "unassigned"}</span>
-                    <span>&bull;</span>
-                    <span>{inc.duration_s.toFixed(1)} s</span>
-                    {isAcked && <span style={{ color: "var(--clear-green)", fontWeight: 600 }}>&bull; Acknowledged</span>}
-                  </div>
+                <div>
+                  <SeverityBadge severity={inc.severity} />
                 </div>
-
-                {/* Right: Timestamp and optional thumbnail indicator */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "12px", color: "var(--steel-700)", fontFamily: "monospace" }}>
-                    {inc.timestamp.slice(11, 19)}
+                <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "var(--text)", fontWeight: 500 }}>
+                    {formatIncidentName(inc.type)}
                   </span>
-                  {inc.evidence_clip && (
-                    <span
-                      title="Evidence clip available"
-                      style={{
-                        fontSize: "12px",
-                        padding: "2px 5px",
-                        backgroundColor: "var(--concrete-100)",
-                        borderRadius: "2px",
-                      }}
-                    >
-                      🎥 Clip
-                    </span>
-                  )}
+                </div>
+                <div>
+                  {inc.zone ? <ZoneBadge type={inc.zone} name={inc.zone} /> : <span style={{ color: "var(--text-muted)" }}>—</span>}
+                </div>
+                <div style={{ textAlign: "right", fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-muted)" }}>
+                  {inc.duration_s.toFixed(1)}s
+                </div>
+                <div
+                  style={{ textAlign: "right", fontSize: "11px", color: "var(--text-muted)" }}
+                  title={formatAbsoluteTime(inc.timestamp)}
+                >
+                  {formatRelativeTime(inc.timestamp)}
                 </div>
               </div>
             );

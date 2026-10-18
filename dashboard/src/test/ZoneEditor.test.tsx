@@ -30,7 +30,7 @@ describe("ZoneEditor Component", () => {
     );
 
     expect(screen.getAllByText("press-area").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/restricted · PPE: helmet/)).toBeInTheDocument();
+    expect(screen.getByText(/PPE: helmet/)).toBeInTheDocument();
   });
 
   it("switches to drawing mode on draw new zone button click", () => {
@@ -41,10 +41,10 @@ describe("ZoneEditor Component", () => {
       />
     );
 
-    const drawBtn = screen.getByText("+ Draw new zone");
+    const drawBtn = screen.getByRole("button", { name: /draw zone/i });
     fireEvent.click(drawBtn);
 
-    expect(screen.getByText(/DRAWING NEW ZONE/i)).toBeInTheDocument();
-    expect(screen.getByText("Save zone")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cancel drawing/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /finish polygon/i })).toBeInTheDocument();
   });
 });

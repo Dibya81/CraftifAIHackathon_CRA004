@@ -1,73 +1,115 @@
-# SiteSentinel: Architecture
+# SiteSentinel Architecture
 
-Diagram: `diagrams/architecture.svg` (PNG copy alongside).
+Diagram: `diagrams/architecture.svg`
 
-## 1. Principle
-PipeGen is the perception engine and the system of record for detections. SiteSentinel adds meaning (rules), evidence, and presentation on top of PipeGen's outputs. The PipeGen export folder is never modified; all custom logic lives outside it and talks to it only through MQTT, JSON and RTSP.
+## 1. Design Principles
+SiteSentinel is an edge-first industrial safety intelligence system built on top of a PipeGen-generated DeepStream + TensorRT perception pipeline.
+- Perception and inference run on-device via zero-copy NVMM GStreamer pipelines.
+- Downstream safety intelligence (PPE association, zone state machines, debounce, evidence retention, API, and control-room dashboard) communicates with the pipeline strictly via standard protocols: MQTT, MJPEG/RTSP, and JSON IPC.
+- Zero fabricated data: every metric displayed or emitted represents measured state. When metrics are unavailable, missing values are explicitly indicated.
+- Privacy by design: unblurred video is never persisted to disk or sent to network clients. Face redaction is enforced directly in the pipeline branch prior to ring-buffer retention and streaming.
 
-## 2. Components
-| Component | Tech | Responsibility |
+## 2. System Components
+
+| Component | Technology | Responsibility |
 |---|---|---|
-| Video source | USB camera / RTSP / file | Frames into the pipeline |
-| PipeGen pipeline | DeepStream + TensorRT (generated) | Decode, detect person/PPE, track, blur faces, emit detections |
-| Edge MLOps | Training + ONNX export | Custom PPE model, parity check, hand-off to PipeGen |
-| MQTT broker | Mosquitto | Message bus between pipeline, rule engine, dashboard |
-| Rule engine | Python | PPE association, zone geometry, per-track state machines, debounce |
-| Evidence writer | Python + OpenCV | Rolling buffer of blurred frames, 10 s clips per incident |
-| Incident store | JSONL files + evidence folder | Append-only log and clips |
-| API | FastAPI + WebSocket | Incidents, zones, stats, live push, health |
-| Dashboard | Web (React or plain HTML) | Live view, feed, zone editor, stats, system health |
-| Evaluation harness | Python | Replays a labelled clip, computes precision, recall, latency |
+| Video Source | USB (V4L2) / RTSP / File | Raw video ingestion (1080p, 25 FPS target) |
+| Perception Pipeline | DeepStream + TensorRT (PipeGen) | Hardware-accelerated decode, multi-class detection (person, helmet, head, vest), NvDCF object tracking, face blur branch |
+| Message Broker | Mosquitto (MQTT 3.1.1/5.0) | Asynchronous low-latency event bus between perception, rule engine, and clients |
+| Rule Engine | Python (Domain State Machines) | Spatial overlap association, convex polygon zone tests, temporal debounce, cooldown logic, incident generation |
+| Evidence Ring Buffer | OpenCV / H.264 Encoder | Rolling 10-second memory buffer (5s pre-event, 5s post-event) producing verified, face-blurred MP4 clips with SHA-256 hash |
+| Incident Store | JSONL + Filesystem | Append-only audit log (`logs/incidents.jsonl`) and indexed metadata store |
+| Backend API | FastAPI + WebSockets | REST endpoints for incident queries, acknowledgments, zone geometry updates, CSV export, telemetry, and live MJPEG relay |
+| Dashboard | React 18 + TypeScript + Vite | Real-time control-room monitor: live annotated feed, incident triage drawer, zone editor, compliance reporting, and hardware telemetry |
+| Evaluation Harness | Python + Shapely | Ground-truth benchmark evaluation measuring precision, recall, and detection latency |
 
-## 3. Data flow
-1. Camera frames enter the PipeGen pipeline (selected at run time).
-2. The detector (TensorRT) outputs person, helmet, head-without-helmet and vest boxes; the tracker assigns IDs.
-3. A face-blur branch produces a blurred stream used for RTSP output and evidence.
-4. Per-frame metadata is published to `sentinel/detections` (and saved as JSON).
-5. The rule engine consumes detections, associates PPE to persons, tests foot-points against zones, updates per-track state, and emits incidents.
-6. Incidents go to `sentinel/incidents`, `logs/incidents.jsonl`, and trigger the evidence writer.
-7. The API serves incidents, stats and a WebSocket push; the dashboard renders them alongside the annotated RTSP stream.
-8. System health (FPS, GPU use, engine precision, MQTT status) is published to `sentinel/health`.
+## 3. Data Flow
+1. **Frame Ingestion**: Video frames are captured and pushed into the GStreamer pipeline.
+2. **Inference & Tracking**: TensorRT INT8/FP16 models detect person and PPE bounding boxes; the tracker assigns persistent track IDs across frames.
+3. **Privacy Redaction**: A hardware branch redacts detected faces in-memory. The blurred frame stream is exposed for MJPEG relay and evidence clip extraction.
+4. **Perception Telemetry**: Detections, bounding boxes, labels, and track IDs are published as JSON payloads to `sentinel/detections`.
+5. **Safety Rule Processing**: The rule engine ingests detections, computes spatial association (head/torso overlap), tests foot-point coordinates against configured polygon zones, advances per-track state machines, and debounces violations.
+6. **Incident Dispatch**: Confirmed safety violations trigger an incident published to `sentinel/incidents`, recorded to `logs/incidents.jsonl`, and signaled to the evidence ring buffer.
+7. **Evidence Capture**: The evidence ring buffer writes a 10-second face-blurred MP4 clip to `evidence/<timestamp>/<incident_id>.mp4` along with an accompanying metadata record.
+8. **Client Telemetry**: The API broadcasts incidents via WebSocket `/ws` and streams annotated video via `/api/stream/live.mjpg`.
 
-## 4. MQTT topics
-| Topic | Producer | Consumer | Payload |
-|---|---|---|---|
-| `sentinel/detections` | PipeGen pipeline | Rule engine | Frame metadata (boxes, classes, track IDs, timestamp) |
-| `sentinel/incidents` | Rule engine | API, external clients | Incident JSON (see PRD section 7) |
-| `sentinel/health` | All services | API, dashboard | FPS, latency, GPU, precision, status |
+## 4. Message Topics (MQTT)
 
-## 5. Rule engine design
-- Association: for each person box, PPE boxes with overlap above `min_overlap` in the head region (helmet) or torso region (vest) count as worn.
-- Zones: polygon test on the person's foot-point (bottom center of the box); zone type decides required PPE and severity.
-- State machine per track: OK, VIOLATING (timer running), INCIDENT_RAISED (cooldown), then back to OK when compliant or the track is lost.
-- Debounce: a violation must persist for `min_duration_s`; one incident per continuous violation; re-alert only after `cooldown_s`.
-- Lost tracks: tracks missing for more than 2 s are closed so IDs are not reused in state.
+| Topic | Producer | Consumer | QoS | Payload |
+|---|---|---|---|---|
+| `sentinel/detections` | Perception Pipeline | Rule Engine | 0 | Frame detections: timestamp, frame ID, tracks with bounding boxes and classes |
+| `sentinel/incidents` | Rule Engine | API, Alert Integrations | 1 | Incident notification payload with severity, zone, duration, and evidence reference |
+| `sentinel/health` | Pipeline / System Daemons | API, Dashboard | 1 (Retained) | Component heartbeats, throughput FPS, latency ms, engine precision, GPU utilization |
 
-## 6. Privacy design
-Face blur is a node inside the PipeGen pipeline. Evidence and the dashboard video only ever read the blurred stream. The raw stream is never persisted.
+## 5. Incident Data Schema
 
-## 7. Deployment
-Single NVIDIA GPU laptop (x86-64 Linux, X11 session). Mosquitto runs in Docker; the pipeline, rule engine and API run as local processes via `scripts/run_demo.sh`. Videos live under `/home` as PipeGen requires.
+All incidents generated by SiteSentinel follow a strict, validated schema:
 
-## 8. Failure handling
-- Camera disconnect: pipeline health event, dashboard banner, auto-reconnect.
-- MQTT drop: rule engine reconnects and resumes; the incident log is the source of truth.
-- Rule engine crash: supervised restart; per-track state is rebuilt from new detections.
-
-## 9. Repo layout
+```json
+{
+  "incident_id": "c7a82b9e-4e6f-4a3e-b87e-4091c58c2b74",
+  "timestamp": "2026-10-18T00:15:22.104Z",
+  "camera_id": "cam-01",
+  "type": "NO_HELMET",
+  "severity": "HIGH",
+  "track_id": 42,
+  "zone": "press-area",
+  "confidence": 0.94,
+  "duration_s": 2.4,
+  "evidence_clip": "evidence/2026-10-18/inc-c7a82b9e.mp4",
+  "status": "open",
+  "notes": []
+}
 ```
-sitesentinel/
-  README.md
-  docs/            PRD.md, DESIGN.md, ARCHITECTURE.md, diagrams/
-  pipegen/         requirement.md, export/ (untouched PipeGen output)
-  models/          train/, onnx/, engines/, calibration/
-  data/            raw/, labelled/, test_clips/
-  src/sentinel/    config, mqtt_client, zones, tracker_assoc, rules, incidents, evidence, api
-  dashboard/       src/, public/
-  config/          sentinel.yaml, rules.yaml, zones.example.json
-  eval/            evaluate.py
-  tests/
-  scripts/         run_demo.sh, record_clip.sh
-  infra/           docker-compose.yml, mosquitto.conf
-  evidence/  logs/  reports/
-```
+
+### Supported Incident Types
+- `NO_HELMET`: Tracked person in a zone requiring helmets lacks a compliant helmet for longer than `min_duration_s`.
+- `NO_VEST`: Tracked person in a zone requiring high-visibility clothing lacks a vest for longer than `min_duration_s`.
+- `ZONE_INTRUSION`: Tracked person enters a restricted or danger zone without authorization.
+- `DANGER_DWELL`: Tracked person exceeds permitted dwell time in a designated danger zone.
+
+### Severity Levels
+- `HIGH`: Danger zone incursions, dwell timeouts, or missing required PPE inside active machinery zones.
+- `MEDIUM`: Restricted zone unauthorized entry or missing vest in transitional areas.
+- `LOW`: Walkway advisory violations or transient proximity warnings.
+
+## 6. Safety Rule Behavior and Thresholds
+- **Spatial Association**:
+  - Helmet association: Requires vertical bounding box overlap between a person's upper 20% vertical region (head) and detected helmet boxes exceeding threshold `min_overlap` (default 0.35).
+  - Vest association: Requires horizontal and vertical overlap between a person's middle 40% vertical region (torso) and detected vest boxes exceeding threshold `min_overlap` (default 0.40).
+- **Zone Geometric Testing**:
+  - Evaluates the bottom-center coordinate of the person bounding box (foot-point) against 2D convex polygon definitions via ray casting and Shapely point-in-polygon algorithms.
+- **Debounce and Cooldown State Machine**:
+  - `min_duration_s` (default 2.0s): A violation must persist continuously across frames before an incident is raised.
+  - `cooldown_s` (default 30.0s): Prevents duplicate alerts for the same track. A track that remains in violation will not emit repeated alerts until the cooldown expires.
+  - Track loss: If a track disappears from camera view for >2.0s, its state machine is finalized and reset.
+
+## 7. HTTP and WebSocket API Summary
+
+SiteSentinel provides a clean RESTful and streaming API served by FastAPI on port 8000:
+
+- `GET /api/system`: System health state, component heartbeats, FPS, latency, and GPU metrics.
+- `GET /api/system/privacy-audit`: Cryptographic verification log of evidence clips and face-blur enforcement status.
+- `GET /api/incidents`: Query incident list with pagination, status filter (`open`, `acknowledged`), severity filter, and date range.
+- `GET /api/incidents/{incident_id}`: Detailed incident record including metadata, notes, and evidence clip paths.
+- `POST /api/incidents/{incident_id}/ack`: Acknowledge an incident with operator ID and optional resolution note.
+- `POST /api/incidents/bulk-ack`: Acknowledge multiple incidents in a single transaction.
+- `GET /api/incidents/export.csv`: Export full incident log in standard CSV format for compliance auditing.
+- `GET /api/zones`: Retrieve current active zone definitions and frame dimensions.
+- `PUT /api/zones`: Update zone polygon coordinates and PPE requirements.
+- `GET /api/zones/snapshot`: High-resolution reference camera frame for zone geometry drafting.
+- `GET /api/stats`: Compliance metrics, incident counts by type, severity, zone, and hourly distribution for the past 24 hours.
+- `GET /api/stream/live.mjpg`: Multipart MJPEG stream of annotated, face-blurred camera frames.
+- `GET /api/stream/status`: Current video relay status, measured ingestion FPS, and relay latency.
+- `POST /api/stream/frame`: Ingest JPEG frame from simulator or external pipeline into relay.
+- `WS /ws`: Real-time WebSocket connection streaming incident alerts and system health updates to connected control-room clients.
+
+## 8. Privacy & Chain of Custody Design
+- **Zero Raw Persistence**: The pipeline architecture splits the video into a perception branch and a redaction branch. Only redacted frames reach disk storage and network sockets.
+- **Automated Verification**: Evidence clips are analyzed post-render to ensure zero unblurred face detections exceed the confidence threshold.
+- **Tamper Evidence**: Every saved evidence clip is hashed with SHA-256 upon write and logged to an append-only ledger.
+
+## 9. Failure Handling & Recovery
+- **Camera Signal Loss**: The MJPEG relay and health supervisor detect frame timeouts (>3s). The system transitions to a clean "NO SIGNAL" state, publishes a health alert, and automatically retries connection without restarting services.
+- **MQTT Broker Disconnection**: Client adapters implement exponential backoff reconnection. Incidents generated during disconnects are queued in-memory and committed to local `incidents.jsonl`.
+- **Pipeline Crashes**: Supervised daemon processes restart the pipeline while preserving historical incident and configuration databases.

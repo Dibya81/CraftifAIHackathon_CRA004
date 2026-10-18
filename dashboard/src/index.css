@@ -1,73 +1,94 @@
-:root {
-  --steel-900: #1E2A33;
-  --steel-800: #2C3E4C;
-  --steel-700: #3E5466;
-  --concrete-100: #E3E6E8;
-  --concrete-50: #F4F5F6;
-  --white: #FFFFFF;
-  --signal-blue: #1F6FD0;
-  --signal-blue-light: #E6F0FB;
-  --hazard-orange: #E8590C;
-  --hazard-orange-light: #FFF4E5;
-  --caution-amber: #F2A900;
-  --caution-amber-light: #FFF9E6;
-  --clear-green: #2E8B57;
-  --clear-green-light: #EEF6F0;
+@import "./design/tokens.css";
 
-  --font-heading: "Barlow Condensed", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-
-  --shadow-sm: 0 1px 3px rgba(30, 42, 51, 0.08);
-  --shadow-md: 0 4px 12px rgba(30, 42, 51, 0.10);
-}
-
+/* Industrial Control Room Global Styles */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--steel-900);
-  background-color: var(--concrete-100);
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Backward-compatibility aliases for existing components */
+:root {
+  --steel-900: var(--text);
+  --steel-800: var(--border-strong);
+  --steel-700: var(--text-muted);
+  --concrete-100: var(--bg);
+  --concrete-50: var(--surface);
+  --white: var(--surface-raised);
+  --signal-blue: var(--info);
+  --signal-blue-light: var(--info-subtle);
+  --hazard-orange: var(--danger);
+  --hazard-orange-light: var(--danger-subtle);
+  --caution-amber: var(--warn);
+  --caution-amber-light: var(--warn-subtle);
+  --clear-green: var(--ok);
+  --clear-green-light: var(--ok-subtle);
+  --font-heading: var(--font-display);
 }
 
 h1, h2, h3, h4, .font-heading {
-  font-family: var(--font-heading);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-family: var(--font-display);
   font-weight: 600;
-  line-height: 1.2;
+  letter-spacing: 0.25px;
+  text-transform: none;
 }
 
-h1 { font-size: 32px; }
-h2 { font-size: 24px; }
-h3 { font-size: 18px; }
+h1 { font-size: var(--text-h1); line-height: var(--line-h1); }
+h2 { font-size: var(--text-h2); line-height: var(--line-h2); }
+h3 { font-size: 16px; line-height: 22px; }
+
+code, pre, kbd, samp, .font-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  line-height: var(--line-mono);
+}
 
 a, button {
   font-family: inherit;
   color: inherit;
+  text-decoration: none;
 }
 
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
-  outline: 2px solid var(--signal-blue);
-  outline-offset: 2px;
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
-/* Animations respecting reduced-motion */
+/* Custom Scrollbars styled to design tokens */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Single-fire slide in animation */
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -76,16 +97,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .animate-slide-in {
-  animation: slideIn 180ms ease-out forwards;
+  animation: slideIn var(--motion-normal) forwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-slide-in {
-    animation: none;
-    opacity: 1;
-  }
-  *, *::before, *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
+/* Pulse for active violations or degraded components */
+@keyframes alertPulse {
+  0% { stroke-opacity: 1; stroke-width: 3px; }
+  50% { stroke-opacity: 0.6; stroke-width: 4px; }
+  100% { stroke-opacity: 1; stroke-width: 3px; }
+}
+
+.animate-alert-pulse {
+  animation: alertPulse 1.2s infinite ease-in-out;
 }

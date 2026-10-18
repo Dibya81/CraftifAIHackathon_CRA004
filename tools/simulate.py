@@ -226,6 +226,7 @@ def run_simulator(
     use_mqtt: bool = True,
     out_video: Optional[str] = None,
     out_json: Optional[str] = None,
+    stream_url: Optional[str] = "http://localhost:8000/api/stream/frame",
 ) -> None:
     generator = SyntheticScenarioGenerator(scenario=scenario, fps=fps)
 
@@ -238,7 +239,7 @@ def run_simulator(
             client.loop_start()
             print(f"[Sim] Connected to MQTT broker at {mqtt_host}:{mqtt_port}, streaming to {mqtt_topic}")
         except Exception as e:
-            print(f"[Sim] Warning: Could not connect to MQTT broker ({e}). Running in offline/file mode.")
+            print(f"[Sim] Note: MQTT broker unavailable ({e}). Continuing in standalone streaming mode.")
             client = None
 
     # Video writer setup
@@ -263,6 +264,8 @@ def run_simulator(
     print(f"[Sim] Starting scenario '{scenario}' at {fps} FPS (total frames: {total_frames})...")
     start_wall_time = time.time()
 
+    import urllib.request
+
     try:
         for f_idx in range(total_frames):
             t_sec = f_idx * frame_interval
@@ -270,17 +273,43 @@ def run_simulator(
 
             # Publish to MQTT
             if client:
-                client.publish(mqtt_topic, json.dumps(frame_data), qos=0)
+                try:
+                    client.publish(mqtt_topic, json.dumps(frame_data), qos=0)
+                except Exception:
+                    pass
 
             # Write JSON line
             if json_f:
                 json_f.write(json.dumps(frame_data) + "\n")
                 json_f.flush()
 
-            # Render & write video
-            if video_writer:
+            # Render frame image if needed for video, stream, or relay
+            frame_img = None
+            if video_writer or stream_url:
                 frame_img = generator.render_frame_image(frame_data)
+
+            if video_writer and frame_img is not None:
                 video_writer.write(frame_img)
+
+            if stream_url and frame_img is not None:
+                success, encoded = cv2.imencode(".jpg", frame_img, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
+                if success:
+                    jpeg_bytes = encoded.tobytes()
+                    try:
+                        from sentinel.api import state as api_state
+                        api_state.relay.update_jpeg(jpeg_bytes)
+                    except Exception:
+                        pass
+                    try:
+                        req = urllib.request.Request(
+                            stream_url,
+                            data=jpeg_bytes,
+                            headers={"Content-Type": "image/jpeg"},
+                            method="POST",
+                        )
+                        urllib.request.urlopen(req, timeout=0.08)
+                    except Exception:
+                        pass
 
             # Pacing to real-time FPS if running live
             if not out_video and not out_json:
@@ -313,8 +342,11 @@ def main() -> None:
     parser.add_argument("--no-mqtt", action="store_true")
     parser.add_argument("--out-video", default=None, help="Path to write synthetic annotated MP4 video")
     parser.add_argument("--out-json", default=None, help="Path to write JSONL stream")
+    parser.add_argument("--stream-url", default="http://localhost:8000/api/stream/frame", help="HTTP endpoint to push frames for live MJPEG streaming")
+    parser.add_argument("--no-stream-http", action="store_true", help="Disable HTTP frame streaming")
 
     args = parser.parse_args()
+    stream_url = None if args.no_stream_http else args.stream_url
     run_simulator(
         scenario=args.scenario,
         fps=args.fps,
@@ -325,6 +357,7 @@ def main() -> None:
         use_mqtt=not args.no_mqtt,
         out_video=args.out_video,
         out_json=args.out_json,
+        stream_url=stream_url,
     )
 
 

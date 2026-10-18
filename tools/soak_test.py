@@ -14,11 +14,10 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Ensure src is in python path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
@@ -26,10 +25,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import platform
 import resource
+
 from sentinel.config import load_rules_config, load_zones_config
 from sentinel.incidents import IncidentSink
 from sentinel.rules import RuleEngine
-from sentinel.tracker_assoc import TrackerPPEAssociator
 from sentinel.zones import ZoneManager
 from tools.simulate import Simulator
 
@@ -61,7 +60,6 @@ def run_soak_test(
     rules_cfg = load_rules_config("config/rules.yaml")
     zone_mgr = ZoneManager(zones_cfg)
     rule_engine = RuleEngine(rules_cfg, zone_mgr)
-    associator = TrackerPPEAssociator(min_overlap=rules_cfg.association.min_overlap)
     sink = IncidentSink(log_path=incidents_log_path)
 
     sim = Simulator(fps=fps)

@@ -155,3 +155,29 @@ def test_api_websocket_live():
         websocket.send_text("ping")
         reply = websocket.receive_text()
         assert reply == "pong"
+
+
+def test_api_stream_and_bulk_operations(tmp_path: Path):
+    inc = setup_test_app(tmp_path)
+    client = TestClient(app)
+
+    # Stream status
+    resp_stream = client.get("/api/stream/status")
+    assert resp_stream.status_code == 200
+    assert "active" in resp_stream.json()
+
+    # Bulk ack
+    resp_bulk = client.post("/api/incidents/bulk-ack", json={"incident_ids": [inc.incident_id], "user": "supervisor"})
+    assert resp_bulk.status_code == 200
+    assert resp_bulk.json()["count"] == 1
+
+    # Export CSV
+    resp_csv = client.get("/api/incidents/export.csv")
+    assert resp_csv.status_code == 200
+    assert "text/csv" in resp_csv.headers["content-type"]
+    assert inc.incident_id in resp_csv.text
+
+    # Privacy audit
+    resp_priv = client.get("/api/system/privacy-audit")
+    assert resp_priv.status_code == 200
+    assert resp_priv.json()["status"] == "passed"

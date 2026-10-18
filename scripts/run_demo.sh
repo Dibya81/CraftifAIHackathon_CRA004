@@ -118,17 +118,19 @@ PIDS+=("${DASH_PID}")
 
 # 4. Start Pipeline / Detection Stream
 if [ "${MODE}" == "sim" ]; then
-  echo "▶ Starting continuous synthetic simulation stream (25 FPS)..."
+  export SENTINEL_MODE="SIMULATED"
+  echo "▶ Starting continuous synthetic simulation stream (25 FPS, MJPEG + detections)..."
   (
     while true; do
       for scenario in compliant no_helmet restricted_entry danger_dwell crowd flicker; do
-        "${PYTHON}" tools/simulate.py --scenario "${scenario}" --duration 12 --fps 25 --no-mqtt >/dev/null 2>&1 || true
+        "${PYTHON}" tools/simulate.py --scenario "${scenario}" --duration 12 --fps 25 --stream-url "http://localhost:${PORT}/api/stream/frame" >/dev/null 2>&1 || true
       done
     done
   ) &
   SIM_PID=$!
   PIDS+=("${SIM_PID}")
 elif [ "${MODE}" == "pipegen" ]; then
+  export SENTINEL_MODE="LIVE"
   if [ -f "pipegen/export/run.sh" ]; then
     echo "▶ Launching PipeGen DeepStream pipeline..."
     ( cd pipegen/export && ./run.sh ) &
@@ -136,12 +138,35 @@ elif [ "${MODE}" == "pipegen" ]; then
     PIDS+=("${PIPE_PID}")
   else
     echo "⚠️  pipegen/export/run.sh not found. Falling back to simulation mode."
-    "${PYTHON}" tools/simulate.py --scenario compliant --duration 30 --fps 25 &
+    export SENTINEL_MODE="SIMULATED"
+    "${PYTHON}" tools/simulate.py --scenario compliant --duration 30 --fps 25 --stream-url "http://localhost:${PORT}/api/stream/frame" &
     PIDS+=($!)
   fi
 elif [ "${MODE}" == "file" ]; then
-  echo "▶ Processing video input: ${INPUT_FILE}..."
-  "${PYTHON}" tools/simulate.py --scenario crowd --duration 30 --fps 25 --out-video "${INPUT_FILE}" &
+  export SENTINEL_MODE="REPLAY"
+  export SENTINEL_REPLAY_FILE="${INPUT_FILE}"
+  echo "▶ Replaying video file: ${INPUT_FILE}..."
+  (
+    "${PYTHON}" -c "
+import cv2, time, urllib.request, sys
+cap = cv2.VideoCapture('${INPUT_FILE}')
+fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+interval = 1.0 / fps
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        continue
+    success, enc = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+    if success:
+        try:
+            req = urllib.request.Request('http://localhost:${PORT}/api/stream/frame', data=enc.tobytes(), headers={'Content-Type': 'image/jpeg'}, method='POST')
+            urllib.request.urlopen(req, timeout=0.1)
+        except Exception:
+            pass
+    time.sleep(interval)
+" >/dev/null 2>&1 || true
+  ) &
   PIDS+=($!)
 fi
 

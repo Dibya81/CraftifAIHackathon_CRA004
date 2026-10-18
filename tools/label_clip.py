@@ -13,6 +13,7 @@ import argparse
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 import cv2
 
 VALID_VIOLATION_TYPES = {"NO_HELMET", "NO_VEST", "ZONE_INTRUSION", "DANGER_DWELL"}

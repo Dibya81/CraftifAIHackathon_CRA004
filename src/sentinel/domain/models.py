@@ -1,7 +1,7 @@
 """Domain models for SiteSentinel.
 
 Defines Box, Detection, FrameMeta, Track, Incident, and IncidentEvent with immutable
-characteristics and strict typing matching PRD §7 and Hexagonal architecture specifications.
+characteristics and strict typing matching architecture specifications §5.
 """
 
 from __future__ import annotations
@@ -168,7 +168,7 @@ class Track:
 
 @dataclass
 class Incident:
-    """A safety incident raised by the rule engine (PRD §7 + Hexagonal schema extensions)."""
+    """A safety incident raised by the rule engine (architecture specification §5)."""
 
     incident_id: str
     timestamp: str  # ISO-8601 UTC

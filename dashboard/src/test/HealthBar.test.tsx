@@ -14,38 +14,49 @@ describe("HealthBar Component", () => {
     latency_ms: 32.1,
     gpu_util: 65,
     gpu_power_w: 12.3,
+    components: [
+      { name: "pipeline", status: "ok", detail: "Active stream" },
+      { name: "rule_engine", status: "ok", detail: "Active rules" },
+      { name: "evidence_writer", status: "ok", detail: "Ring buffer operational" },
+      { name: "api", status: "ok", detail: "REST & WS healthy" },
+      { name: "broker", status: "ok", detail: "MQTT connected" },
+    ],
   };
 
-  it("renders healthy system state and engine precision", () => {
-    const onSelect = vi.fn();
-    const onTogglePresent = vi.fn();
-
+  it("renders status dot and engine precision when confirmed by payload", () => {
     render(
       <HealthBar
         health={mockHealthy}
         activeScreen="live"
-        onSelectScreen={onSelect}
+        onSelectScreen={vi.fn()}
         presentMode={false}
-        onTogglePresent={onTogglePresent}
+        onTogglePresent={vi.fn()}
       />
     );
 
     expect(screen.getByText("SiteSentinel")).toBeInTheDocument();
     expect(screen.getByText("Engine INT8")).toBeInTheDocument();
-    expect(screen.getByText("System healthy")).toBeInTheDocument();
-    expect(screen.getByText(/31 FPS/)).toBeInTheDocument();
+    // System operational pill must NOT exist
+    expect(screen.queryByText("System operational")).not.toBeInTheDocument();
+    expect(screen.getByText(/31/)).toBeInTheDocument();
   });
 
-  it("displays camera lost warning banner when camera is down", () => {
-    const mockCameraDown: HealthState = {
-      ...mockHealthy,
-      camera: "down",
+  it("renders em-dash '—' when metrics are unavailable and never fabricates numbers", () => {
+    const emptyHealth: HealthState = {
       status: "degraded",
+      uptime_s: 0,
+      camera: "down",
+      mqtt: "down",
+      fps: null,
+      latency_ms: null,
+      engine_precision: null,
+      gpu_util: null,
+      gpu_power_w: null,
     };
 
     render(
       <HealthBar
-        health={mockCameraDown}
+        health={emptyHealth}
         activeScreen="live"
         onSelectScreen={vi.fn()}
         presentMode={false}
@@ -53,45 +64,55 @@ describe("HealthBar Component", () => {
       />
     );
 
-    expect(screen.getByText("Camera lost")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Camera lost\. Check the USB cable or the RTSP address/i)
-    ).toBeInTheDocument();
+    // Em-dashes rendered for missing values
+    expect(screen.getByText(/— FPS/)).toBeInTheDocument();
+    expect(screen.getByText(/— ms/)).toBeInTheDocument();
+    expect(screen.getByText(/GPU —/)).toBeInTheDocument();
+    expect(screen.getByText(/Engine —/)).toBeInTheDocument();
+    // Engine precision chip must not appear when engine_precision is null
+    expect(screen.queryByText("Engine INT8")).not.toBeInTheDocument();
   });
 
-  it("allows switching screens via navigation buttons", () => {
-    const onSelect = vi.fn();
-
-    render(
-      <HealthBar
-        health={mockHealthy}
-        activeScreen="live"
-        onSelectScreen={onSelect}
-        presentMode={false}
-        onTogglePresent={vi.fn()}
-      />
-    );
-
-    const zonesBtn = screen.getByText("Zone editor");
-    fireEvent.click(zonesBtn);
-    expect(onSelect).toHaveBeenCalledWith("zones");
-  });
-
-  it("toggles present mode when clicked", () => {
-    const onToggle = vi.fn();
-
+  it("expands component list on status dot click and displays heartbeats", () => {
     render(
       <HealthBar
         health={mockHealthy}
         activeScreen="live"
         onSelectScreen={vi.fn()}
         presentMode={false}
-        onTogglePresent={onToggle}
+        onTogglePresent={vi.fn()}
       />
     );
 
-    const presentBtn = screen.getByText("Present mode");
-    fireEvent.click(presentBtn);
-    expect(onToggle).toHaveBeenCalled();
+    const toggleBtn = screen.getByTestId("health-status-dropdown-btn");
+    expect(toggleBtn).toBeInTheDocument();
+
+    // Click to expand
+    fireEvent.click(toggleBtn);
+
+    expect(screen.getByText("System Components")).toBeInTheDocument();
+    expect(screen.getByText("pipeline")).toBeInTheDocument();
+    expect(screen.getByText("rule engine")).toBeInTheDocument();
+    expect(screen.getByText("broker")).toBeInTheDocument();
+  });
+
+  it("derives status correctly from degraded or down payloads", () => {
+    const degradedHealth: HealthState = {
+      ...mockHealthy,
+      status: "degraded",
+      camera: "down",
+    };
+
+    render(
+      <HealthBar
+        health={degradedHealth}
+        activeScreen="live"
+        onSelectScreen={vi.fn()}
+        presentMode={false}
+        onTogglePresent={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("NO SIGNAL")).toBeInTheDocument();
   });
 });

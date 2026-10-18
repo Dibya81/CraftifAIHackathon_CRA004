@@ -241,7 +241,7 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
               <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 <input
                   type="text"
-                  placeholder="Optional acknowledgement note..."
+                  aria-label="Optional acknowledgement note"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   style={{
@@ -304,7 +304,7 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
             <div style={{ display: "flex", gap: "10px" }}>
               <input
                 type="text"
-                placeholder="Add notes to audit trail..."
+                aria-label="Add notes to audit trail"
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 style={{
