@@ -15,6 +15,7 @@ evidence/*
 !evidence/screenshots/*
 !evidence/submission_bugs_and_failures/
 !evidence/submission_bugs_and_failures/*
+!evidence/demo_walkthrough_1_to_3_min.mp4
 logs/*
 !**/.gitkeep
 .env
