@@ -1,0 +1,8 @@
+# PipeGen Pipeline IR Screenshot — PENDING
+
+Status: PENDING (ledger id: PIPEGEN-IR-SCREENSHOT)
+This file does not exist yet.
+Action: Capture a screenshot of the PipeGen UI showing the Pipeline IR node graph.
+Commit the .png file here as: evidence/pipegen/pipeline_ir.png
+Then compute its SHA-256 and update evidence/ledger.yaml entry PIPEGEN-IR-SCREENSHOT.
+Note: docs/diagrams/architecture.png is our architecture diagram (not a PipeGen capture).
