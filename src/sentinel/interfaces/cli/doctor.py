@@ -7,7 +7,7 @@ import importlib
 import shutil
 import socket
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
 import psutil
 
@@ -175,3 +175,42 @@ def run_diagnostics() -> Dict[str, Any]:
         results.append({"check": name, "ok": ok, "message": msg, "fix": fix})
 
     return {"status": "ok" if all_ok else "warn", "checks": results}
+
+
+def diagnose_payload_file(file_path: Union[str, Path]) -> Dict[str, Any]:
+    """Diagnoses a payload file by evaluating all adapter formats and checking fields."""
+    p = Path(file_path)
+    if not p.exists():
+        return {
+            "parsed_successfully": False,
+            "error": f"Payload file '{file_path}' does not exist",
+            "detected_format": "unknown",
+            "format_evaluations": {},
+            "fields_found": {},
+            "detections_count": 0,
+            "classes_detected": [],
+            "warnings": [f"File not found: {file_path}"],
+            "recommendations": ["Provide an existing JSON or NDJSON sample file."],
+        }
+
+    cfg = load_sentinel_config()
+    from sentinel.adapters.pipegen import PipeGenAdapter
+
+    adapter = PipeGenAdapter(
+        class_map=cfg.class_map,
+        default_camera_id=cfg.camera_id,
+        format_mode="auto",
+        bbox_format=cfg.adapter.bbox_format,
+        bbox_normalized=cfg.adapter.bbox_normalized,
+        timestamp_format=cfg.adapter.timestamp_format,
+        fps=cfg.adapter.fps,
+        track_id_fields=cfg.adapter.track_id_fields,
+        class_fields=cfg.adapter.class_fields,
+        conf_fields=cfg.adapter.conf_fields,
+        bbox_fields=cfg.adapter.bbox_fields,
+    )
+
+    content = p.read_text(encoding="utf-8", errors="replace")
+    report = adapter.diagnose_payload(content)
+    return report
+

@@ -4,6 +4,18 @@ source:
   type: mqtt                  # mqtt | json_file
   json_file_path: null
 
+# Pipeline and Detector Adapter Configuration:
+adapter:
+  format: auto                # auto | canonical | deepstream_pipe | deepstream_array | ndjson
+  bbox_format: xyxy           # xyxy | xywh
+  bbox_normalized: false      # true if coordinates are 0.0-1.0 relative to image size
+  timestamp_format: epoch     # epoch | iso | pts_fps
+  fps: 25.0                   # used when timestamp_format is pts_fps
+  track_id_fields: ["track_id", "id", "object_id", "objectId"]
+  class_fields: ["class", "type", "label", "class_id", "classId"]
+  conf_fields: ["conf", "confidence", "score"]
+  bbox_fields: ["bbox", "box", "rect"]
+
 mqtt:
   host: localhost
   port: 1883

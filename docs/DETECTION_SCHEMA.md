@@ -1,12 +1,17 @@
 # SiteSentinel: Detection & Event Schemas
 
-This document defines the canonical internal detection format emitted by PipeGen adapters, the incident notification event format, and the system health monitoring payload.
+This document defines the supported input perception formats accepted by the SiteSentinel adapter, the incident notification event format, and the system health monitoring payload.
+
+> **Notice:** The external schemas below are assumed, to be confirmed against a real PipeGen sample during physical booth check-in. The adapter auto-detects and supports all variants behind a unified configuration interface (`sentinel doctor --payload <sample.json>`).
 
 ---
 
-## 1. Canonical Detection Schema (`sentinel/detections`)
+## 1. Supported Input Formats
 
-PipeGen outputs (whether transported via MQTT JSON messages or streamed to per-frame metadata JSON files) are parsed into this internal representation:
+### Format A: Canonical Schema (Default)
+*(Assumed, to be confirmed against a real PipeGen sample)*
+
+Emitted by standard MQTT JSON publishers or simulator:
 
 ```json
 {
@@ -40,22 +45,98 @@ PipeGen outputs (whether transported via MQTT JSON messages or streamed to per-f
 }
 ```
 
-### Fields
-- `camera_id` (string, required): Identifier of the capturing video source.
-- `frame_id` (integer, required): Monotonically increasing sequence number from the decoder.
-- `ts` (float, required): Frame presentation timestamp in epoch seconds (UTC). Used for deterministic replays.
-- `frame` (object, required):
-  - `width` (integer): Image width in pixels.
-  - `height` (integer): Image height in pixels.
-- `objects` (array of objects):
-  - `track_id` (integer or null): Unique persistent tracking ID assigned by DeepStream NvDCF/ByteTrack (null for untracked PPE detections).
-  - `class` (string): Canonical class name mapped via `config/sentinel.yaml` `class_map`: `"person"`, `"helmet"`, `"no_helmet"`, `"vest"`.
-  - `conf` (float, 0.0 to 1.0): Detection confidence score.
-  - `bbox` (array of 4 floats): Bounding box coordinates `[x1, y1, x2, y2]`.
+### Format B: DeepStream nvmsgconv Object-Array Schema
+*(Assumed, to be confirmed against a real PipeGen sample)*
+
+Standard NVIDIA DeepStream `nvmsgconv` payload with nested object dictionaries and bounding box rects:
+
+```json
+{
+  "version": "4.0",
+  "id": "1420",
+  "@timestamp": "2026-10-17T15:30:00.125Z",
+  "sensorId": "cam-01",
+  "sensor": {
+    "id": "cam-01",
+    "type": "Camera"
+  },
+  "objects": [
+    {
+      "object": {
+        "id": "12",
+        "type": "person",
+        "confidence": 0.94,
+        "bbox": {
+          "topleftx": 520.0,
+          "toplefty": 310.0,
+          "bottomrightx": 710.0,
+          "bottomrighty": 890.0
+        }
+      }
+    },
+    {
+      "object": {
+        "id": "-1",
+        "type": "hard_hat",
+        "confidence": 0.91,
+        "bbox": {
+          "left": 570.0,
+          "top": 315.0,
+          "width": 90.0,
+          "height": 95.0
+        }
+      }
+    }
+  ]
+}
+```
+
+### Format C: DeepStream Minimal Pipe-Delimited Schema
+*(Assumed, to be confirmed against a real PipeGen sample)*
+
+Low-overhead pipe-delimited payload serialization used in high-throughput embedded streaming:
+
+**Variant C1 (JSON wrapper with pipe items):**
+```json
+{
+  "version": "1.0",
+  "sensorId": "cam-01",
+  "frameId": 1420,
+  "timestamp": 1776435600.125,
+  "objects": [
+    "12|0|520.0|310.0|190.0|580.0|0.94",
+    "-1|1|570.0|315.0|90.0|95.0|0.91"
+  ]
+}
+```
+Field format: `track_id|class_id|x|y|w|h|conf` (or `x1|y1|x2|y2|conf`).
+
+**Variant C2 (Raw string line per frame):**
+```text
+1420|cam-01|1776435600.125|12|0|520.0|310.0|190.0|580.0|0.94#-1|1|570.0|315.0|90.0|95.0|0.91
+```
+
+### Format D: NDJSON & File-Tailed Stream
+*(Assumed, to be confirmed against a real PipeGen sample)*
+
+Per-frame JSON metadata files appended line-by-line or tailed using `JsonFileMetadataTailer`. Captured directly using `tools/capture_stream.py`.
 
 ---
 
-## 2. Incident Event Schema (`sentinel/incidents`)
+## 2. Adapter Configuration Parameters (`config/sentinel.yaml`)
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `adapter.format` | string | `auto` | Parser selection (`auto`, `canonical`, `deepstream_array`, `deepstream_pipe`, `ndjson`) |
+| `adapter.bbox_format` | string | `xyxy` | Bounding box coordinate convention (`xyxy` or `xywh`) |
+| `adapter.bbox_normalized` | boolean | `false` | Set `true` if coordinates are normalized `[0.0, 1.0]` |
+| `adapter.timestamp_format`| string | `epoch` | Timestamp format (`epoch`, `iso`, `pts_fps`) |
+| `adapter.fps` | float | `25.0` | Frame rate used when calculating timestamps from frame sequence numbers |
+| `class_map` | mapping | Built-in | Maps integer IDs or external detector strings to canonical classes (`person`, `helmet`, `no_helmet`, `vest`) |
+
+---
+
+## 3. Incident Event Schema (`sentinel/incidents`)
 
 Published by the rule engine to MQTT QoS 1 and written to `logs/incidents.jsonl`:
 
@@ -75,14 +156,9 @@ Published by the rule engine to MQTT QoS 1 and written to `logs/incidents.jsonl`
 }
 ```
 
-### Event Types
-- `incident_created`: Published immediately when a violation window debounces and an incident is raised.
-- `incident_updated`: Published when evidence clip generation completes and `evidence_clip` path is attached.
-- `incident_acked`: Published when a safety officer acknowledges the incident from the dashboard or API.
-
 ---
 
-## 3. System Health Schema (`sentinel/health`)
+## 4. System Health Schema (`sentinel/health`)
 
 Published to `sentinel/health` (retained MQTT topic) at 1 Hz:
 
@@ -100,8 +176,3 @@ Published to `sentinel/health` (retained MQTT topic) at 1 Hz:
   "ts": 1776435600.5
 }
 ```
-
-### Status Levels
-- `"ok"`: FPS at target, camera up, MQTT connected, GPU healthy.
-- `"degraded"`: FPS below 20, high latency, or pipeline dropouts.
-- `"down"`: Camera lost, broker disconnected, or pipeline halted.

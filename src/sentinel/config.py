@@ -63,9 +63,30 @@ class ApiConfig(BaseModel):
     port: int = Field(default=8000, ge=1, le=65535)
 
 
+class AdapterConfig(BaseModel):
+    format: Literal["auto", "canonical", "deepstream_pipe", "deepstream_array", "ndjson"] = "auto"
+    bbox_format: Literal["xyxy", "xywh"] = "xyxy"
+    bbox_normalized: bool = False
+    timestamp_format: Literal["epoch", "iso", "pts_fps"] = "epoch"
+    fps: float = Field(default=25.0, gt=0.0)
+    track_id_fields: List[str] = Field(
+        default_factory=lambda: ["track_id", "id", "object_id", "objectId"]
+    )
+    class_fields: List[str] = Field(
+        default_factory=lambda: ["class", "type", "label", "class_id", "classId"]
+    )
+    conf_fields: List[str] = Field(
+        default_factory=lambda: ["conf", "confidence", "score"]
+    )
+    bbox_fields: List[str] = Field(
+        default_factory=lambda: ["bbox", "box", "rect"]
+    )
+
+
 class SentinelConfig(BaseModel):
     camera_id: str = "cam-01"
     source: SourceConfig = Field(default_factory=SourceConfig)
+    adapter: AdapterConfig = Field(default_factory=AdapterConfig)
     mqtt: MqttConfig = Field(default_factory=MqttConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
     privacy: PrivacyConfig = Field(default_factory=PrivacyConfig)

@@ -85,4 +85,10 @@ def setup_logging(
     return logger
 
 
+def get_logger(name: str = "sentinel") -> logging.Logger:
+    """Return a logger instance with the given name."""
+    return logging.getLogger(name)
+
+
 logger = logging.getLogger("sentinel")
+

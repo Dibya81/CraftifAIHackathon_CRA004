@@ -7,7 +7,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import typer
 import uvicorn
@@ -24,8 +24,58 @@ app = typer.Typer(
 
 
 @app.command()
-def doctor():
-    """Run diagnostic checks on dependencies, GPU, ports, broker, and export manifest."""
+def doctor(
+    payload: Optional[str] = typer.Option(
+        None, "--payload", "-p", help="Path to sample payload or NDJSON file for adapter format self-diagnosis"
+    ),
+    hardware: bool = typer.Option(
+        False, "--hardware", help="Run comprehensive edge hardware environment diagnostics"
+    ),
+):
+    """Run diagnostic checks on dependencies, GPU, ports, broker, export manifest, or sample payloads."""
+    if payload:
+        from sentinel.interfaces.cli.doctor import diagnose_payload_file
+
+        typer.echo(f"Diagnosing detector payload format: {payload}\n")
+        diag = diagnose_payload_file(payload)
+        if not diag.get("parsed_successfully"):
+            typer.secho("FAIL: Could not successfully parse payload.", fg=typer.colors.RED, bold=True)
+            for warn in diag.get("warnings", []):
+                typer.echo(f"  Warning: {warn}")
+            for rec in diag.get("recommendations", []):
+                typer.echo(f"  Recommendation: {rec}")
+            sys.exit(1)
+
+        typer.secho(
+            f"SUCCESS: Best matching format: {diag.get('detected_format')}",
+            fg=typer.colors.GREEN,
+            bold=True,
+        )
+        typer.echo(f"  Detections extracted: {diag.get('detections_count')}")
+        typer.echo(f"  Detected classes: {', '.join(diag.get('classes_detected', []))}")
+        typer.echo("\nFormat evaluations:")
+        for fmt, res in diag.get("format_evaluations", {}).items():
+            st = "[PASS]" if res.get("success") else "[FAIL]"
+            cnt = res.get("detections_count", 0)
+            err = f" ({res.get('error')})" if res.get("error") else ""
+            typer.echo(f"  {st} {fmt}: {cnt} detections{err}")
+
+        if diag.get("fields_found"):
+            typer.echo("\nField mapping report:")
+            for k, v in diag["fields_found"].items():
+                typer.echo(f"  - {k}: {v}")
+
+        if diag.get("warnings"):
+            typer.echo("\nWarnings:")
+            for w in diag["warnings"]:
+                typer.secho(f"  - {w}", fg=typer.colors.YELLOW)
+
+        if diag.get("recommendations"):
+            typer.echo("\nRecommendations:")
+            for r in diag["recommendations"]:
+                typer.echo(f"  - {r}")
+        return
+
     typer.echo("Running SiteSentinel System Diagnostics...\n")
     report = run_diagnostics()
 
@@ -51,6 +101,119 @@ def doctor():
             "SiteSentinel found configuration warnings or issues. Review recommendations above.",
             fg=typer.colors.YELLOW,
         )
+
+
+@app.command()
+def replay(
+    capture: str = typer.Argument(..., help="Path to NDJSON capture file"),
+    speed: float = typer.Option(1.0, help="Playback speed multiplier (0.0 for instant max speed)"),
+    save_incidents: bool = typer.Option(True, help="Persist raised incidents to logs/incidents.jsonl and database"),
+    dry_run: bool = typer.Option(False, help="Do not persist or broadcast incidents"),
+):
+    """Deterministically replay a captured stream of detection frames through the adapter and rule engine."""
+    from sentinel.adapters.pipegen import PipeGenAdapter
+    from sentinel.config import load_rules_config
+    from sentinel.domain.rules import RuleEngine
+    from sentinel.domain.zones import ZoneManager
+
+    capture_path = Path(capture)
+    if not capture_path.exists():
+        typer.secho(f"Error: Capture file {capture_path} does not exist.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    cfg = load_sentinel_config()
+    rules_cfg = load_rules_config("config/rules.yaml")
+    zones = ZoneManager.from_file(cfg.paths.zones)
+
+    adapter = PipeGenAdapter(
+        class_map=cfg.class_map,
+        default_camera_id=cfg.camera_id,
+        format_mode=cfg.adapter.format,
+        bbox_format=cfg.adapter.bbox_format,
+        bbox_normalized=cfg.adapter.bbox_normalized,
+        timestamp_format=cfg.adapter.timestamp_format,
+        fps=cfg.adapter.fps,
+        track_id_fields=cfg.adapter.track_id_fields,
+        class_fields=cfg.adapter.class_fields,
+        conf_fields=cfg.adapter.conf_fields,
+        bbox_fields=cfg.adapter.bbox_fields,
+    )
+
+    rule_engine = RuleEngine(rules_cfg=rules_cfg, zone_manager=zones)
+
+    repo = None
+    if save_incidents and not dry_run:
+        repo = SQLiteIncidentRepository(
+            db_path=Path(cfg.paths.incidents_log).parent / "sentinel.db",
+            jsonl_log=JSONLAuditLog(cfg.paths.incidents_log),
+        )
+
+    typer.echo(f"Replaying stream from: {capture_path}")
+    typer.echo(f"Speed: {speed}x | Persist: {save_incidents and not dry_run}")
+
+    frames_processed = 0
+    incidents_raised = []
+    last_frame_ts = None
+    start_wall_time = time.time()
+
+    content = capture_path.read_text(encoding="utf-8")
+    frames_raw: List[str] = []
+    try:
+        single_obj = json.loads(content)
+        if isinstance(single_obj, dict):
+            frames_raw = [content]
+    except Exception:
+        pass
+
+    if not frames_raw:
+        for line in content.splitlines():
+            line_str = line.strip()
+            if not line_str or "_sentinel_capture_header" in line_str:
+                continue
+            frames_raw.append(line_str)
+
+    for item in frames_raw:
+        meta = adapter.parse_payload(item)
+        frames_processed += 1
+
+        if speed > 0 and last_frame_ts is not None and meta.ts > last_frame_ts:
+            delta = (meta.ts - last_frame_ts) / speed
+            if 0 < delta < 2.0:
+                time.sleep(delta)
+        last_frame_ts = meta.ts
+
+        # Evaluate frame
+        raised = rule_engine.process_frame(meta)
+        for inc in raised:
+            incidents_raised.append(inc)
+            if repo:
+                from sentinel.domain.models import IncidentEvent, IncidentEventType
+
+                evt = IncidentEvent.create(
+                    event_type=IncidentEventType.INCIDENT_CREATED.value,
+                    incident=inc,
+                )
+                repo.save_incident(incident=inc, outbox_event=evt)
+            typer.echo(
+                f"  [INCIDENT RAISED] Frame {meta.frame_id}: {inc.type} for track {inc.track_id} in {inc.zone} (conf: {inc.confidence:.2f})"
+            )
+
+    elapsed_time = max(time.time() - start_wall_time, 0.001)
+    fps = frames_processed / elapsed_time
+
+    typer.secho(
+        f"\nReplay completed: {frames_processed} frames in {elapsed_time:.2f}s ({fps:.1f} FPS)",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+    typer.echo(f"Total incidents raised: {len(incidents_raised)}")
+    by_type: Dict[str, int] = {}
+    for inc in incidents_raised:
+        by_type[inc.type] = by_type.get(inc.type, 0) + 1
+    for t, count in by_type.items():
+        typer.echo(f"  - {t}: {count}")
+    metrics = adapter.get_metrics()
+    typer.echo(f"Adapter rejects: {metrics['adapter_rejects_total']}")
 
 
 @app.command()
