@@ -5,7 +5,7 @@ and value failed validation.
 """
 
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, cast
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
@@ -262,11 +262,13 @@ def load_zones_config(path: Union[str, Path] = "config/zones.json") -> ZonesConf
 
 
 # Backward compatibility helpers
-def load_yaml(path: str) -> dict:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+def load_yaml(path: str) -> Dict[str, Any]:
+    res = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return cast(Dict[str, Any], res if isinstance(res, dict) else {})
 
 
-def load_zones(path: str) -> dict:
+def load_zones(path: str) -> Dict[str, Any]:
     import json
 
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    res = json.loads(Path(path).read_text(encoding="utf-8"))
+    return cast(Dict[str, Any], res if isinstance(res, dict) else {})
