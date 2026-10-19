@@ -68,11 +68,11 @@ Open your browser to:
 1. Navigate to **Reports** tab:
    - View overall compliance percentage (**94.2%**), hourly distribution chart, and click **Export CSV**.
 2. Navigate to **System** tab:
-   - Review the **TensorRT Precision Benchmark Matrix**:
-     - FP32 Baseline: 11.2 FPS
-     - FP16 (TensorRT): 24.8 FPS
-     - INT8 (PipeGen Quantized): **31.4 FPS** (**1.27x faster**, **46.7% VRAM reduction**, **0.005 mAP drop**).
-   - Conclude: PipeGen enabled zero-copy DeepStream memory mapping on edge silicon with automated INT8 quantization.
+   - Review the **TensorRT Precision Benchmark Matrix** (marked PENDING until hardware run):
+     - FP32 Baseline: PENDING (to be measured on target GPU)
+     - FP16 (TensorRT): PENDING (to be measured on target GPU)
+     - INT8 (PipeGen Quantized): PENDING (to be measured on target GPU, documented in docs/RUNBOOK.md).
+   - Explain how PipeGen will compile zero-copy DeepStream memory mapping on edge silicon with automated INT8 quantization.
 
 ---
 

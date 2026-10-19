@@ -68,7 +68,12 @@ def test_deepstream_array_schema_parsing():
                     "id": "42",
                     "type": "person",
                     "confidence": 0.96,
-                    "bbox": {"topleftx": 100, "toplefty": 200, "bottomrightx": 300, "bottomrighty": 700},
+                    "bbox": {
+                        "topleftx": 100,
+                        "toplefty": 200,
+                        "bottomrightx": 300,
+                        "bottomrighty": 700,
+                    },
                 }
             },
             {
@@ -126,9 +131,7 @@ def test_bbox_normalized_scaling():
     payload = {
         "frame_id": 1,
         "frame": {"width": 1000, "height": 500},
-        "objects": [
-            {"track_id": 1, "class": "person", "conf": 0.9, "bbox": [0.1, 0.2, 0.5, 0.8]}
-        ],
+        "objects": [{"track_id": 1, "class": "person", "conf": 0.9, "bbox": [0.1, 0.2, 0.5, 0.8]}],
     }
     meta = adapter.parse_payload(payload)
     assert len(meta.detections) == 1
@@ -138,18 +141,22 @@ def test_bbox_normalized_scaling():
 
 def test_timestamp_formats_iso_and_pts():
     adapter_iso = PipeGenAdapter()
-    meta_iso = adapter_iso.parse_payload({
-        "frame_id": 1,
-        "timestamp": "2026-10-17T12:00:00Z",
-        "objects": [],
-    })
+    meta_iso = adapter_iso.parse_payload(
+        {
+            "frame_id": 1,
+            "timestamp": "2026-10-17T12:00:00Z",
+            "objects": [],
+        }
+    )
     assert meta_iso.ts > 1700000000.0
 
     adapter_pts = PipeGenAdapter(timestamp_format="pts_fps", fps=25.0)
-    meta_pts = adapter_pts.parse_payload({
-        "frame_id": 50,
-        "objects": [],
-    })
+    meta_pts = adapter_pts.parse_payload(
+        {
+            "frame_id": 50,
+            "objects": [],
+        }
+    )
     # 50 frames at 25 fps = 2.0s
     assert meta_pts.ts == 2.0
 
@@ -185,8 +192,18 @@ def test_fuzz_zero_and_negative_size_boxes_rejected():
     payload = {
         "frame_id": 1,
         "objects": [
-            {"track_id": 1, "class": "person", "conf": 0.9, "bbox": [50, 50, 50, 50]},  # zero width/height
-            {"track_id": 2, "class": "person", "conf": 0.9, "bbox": [100, 100, 50, 50]},  # inverted coords fixed by Box or rejected
+            {
+                "track_id": 1,
+                "class": "person",
+                "conf": 0.9,
+                "bbox": [50, 50, 50, 50],
+            },  # zero width/height
+            {
+                "track_id": 2,
+                "class": "person",
+                "conf": 0.9,
+                "bbox": [100, 100, 50, 50],
+            },  # inverted coords fixed by Box or rejected
             {"track_id": 3, "class": "person", "conf": 0.9, "bbox": [0, 0, 10, 0]},  # zero height
             {"track_id": 4, "class": "person", "conf": 0.9, "bbox": [10, 20, 30, 40]},  # valid
         ],

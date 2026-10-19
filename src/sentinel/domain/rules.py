@@ -365,7 +365,10 @@ def _evaluate_danger_dwell(
         "frames_window": len(rule_state.accumulated_confs),
         "confidences": [round(c, 3) for c in rule_state.accumulated_confs[-10:]],
         "zone": zone_id,
-        "timer_values": {"dwell_duration_s": round(dwell_duration, 2), "threshold_s": dwell_duration},
+        "timer_values": {
+            "dwell_duration_s": round(dwell_duration, 2),
+            "threshold_s": dwell_duration,
+        },
         "dwell_duration_s": round(dwell_duration, 2),
     }
 

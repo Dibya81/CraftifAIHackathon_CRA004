@@ -65,7 +65,7 @@ PIDS=()
 
 cleanup() {
   echo ""
-  echo "🛑 Shutting down SiteSentinel demonstration services..."
+  echo "[STOP] Shutting down SiteSentinel demonstration services..."
   for pid in "${PIDS[@]}"; do
     if kill -0 "$pid" 2>/dev/null; then
       kill "$pid" 2>/dev/null || true
@@ -73,29 +73,29 @@ cleanup() {
   done
   # Clean up background process group
   kill -- -$$ 2>/dev/null || true
-  echo "✓ All demonstration services stopped."
+  echo "[DONE] All demonstration services stopped."
 }
 
 trap cleanup EXIT INT TERM
 
 echo "======================================================================"
-echo "🛡️  Starting SiteSentinel Demo (Mode: ${MODE})"
+echo "Starting SiteSentinel Demo (Mode: ${MODE})"
 echo "======================================================================"
 
 # 1. Check or start MQTT Broker
 if nc -z localhost 1883 2>/dev/null; then
-  echo "✓ MQTT Broker is already listening on port 1883."
+  echo "[PASS] MQTT Broker is already listening on port 1883."
 elif command -v docker &>/dev/null && docker info &>/dev/null; then
-  echo "▶ Starting Mosquitto MQTT broker via docker compose..."
+  echo "> Starting Mosquitto MQTT broker via docker compose..."
   docker compose -f infra/docker-compose.yml up -d 2>/dev/null || true
   sleep 1
 else
-  echo "⚠️  Note: Local MQTT broker not detected on port 1883."
+  echo "[WARN] Note: Local MQTT broker not detected on port 1883."
   echo "   (Simulator and backend will use resilient socket reconnection)"
 fi
 
 # 2. Start FastAPI Backend & WebSocket Service
-echo "▶ Starting SiteSentinel FastAPI server on port ${PORT}..."
+echo "> Starting SiteSentinel FastAPI server on port ${PORT}..."
 "${PYTHON}" -m uvicorn sentinel.interfaces.api.app:app --host 0.0.0.0 --port "${PORT}" --log-level warning &
 BACKEND_PID=$!
 PIDS+=("${BACKEND_PID}")
@@ -104,14 +104,14 @@ PIDS+=("${BACKEND_PID}")
 echo "Waiting for API readiness..."
 for i in {1..30}; do
   if curl -s "http://localhost:${PORT}/api/health" >/dev/null; then
-    echo "✓ Backend API is ready."
+    echo "[PASS] Backend API is ready."
     break
   fi
   sleep 0.5
 done
 
 # 3. Start React Dashboard
-echo "▶ Starting SiteSentinel Dashboard on port ${DASH_PORT}..."
+echo "> Starting SiteSentinel Dashboard on port ${DASH_PORT}..."
 ( npm --prefix dashboard run dev -- --port "${DASH_PORT}" --host >/dev/null 2>&1 ) &
 DASH_PID=$!
 PIDS+=("${DASH_PID}")
@@ -119,7 +119,7 @@ PIDS+=("${DASH_PID}")
 # 4. Start Pipeline / Detection Stream
 if [ "${MODE}" == "sim" ]; then
   export SENTINEL_MODE="SIMULATED"
-  echo "▶ Starting continuous synthetic simulation stream (25 FPS, MJPEG + detections)..."
+  echo "> Starting continuous synthetic simulation stream (25 FPS, MJPEG + detections)..."
   (
     while true; do
       for scenario in compliant no_helmet restricted_entry danger_dwell crowd flicker; do
@@ -132,12 +132,12 @@ if [ "${MODE}" == "sim" ]; then
 elif [ "${MODE}" == "pipegen" ]; then
   export SENTINEL_MODE="LIVE"
   if [ -f "pipegen/export/run.sh" ]; then
-    echo "▶ Launching PipeGen DeepStream pipeline..."
+    echo "> Launching PipeGen DeepStream pipeline..."
     ( cd pipegen/export && ./run.sh ) &
     PIPE_PID=$!
     PIDS+=("${PIPE_PID}")
   else
-    echo "⚠️  pipegen/export/run.sh not found. Falling back to simulation mode."
+    echo "[WARN] pipegen/export/run.sh not found. Falling back to simulation mode."
     export SENTINEL_MODE="SIMULATED"
     "${PYTHON}" tools/simulate.py --scenario compliant --duration 30 --fps 25 --stream-url "http://localhost:${PORT}/api/stream/frame" &
     PIDS+=($!)
@@ -145,7 +145,7 @@ elif [ "${MODE}" == "pipegen" ]; then
 elif [ "${MODE}" == "file" ]; then
   export SENTINEL_MODE="REPLAY"
   export SENTINEL_REPLAY_FILE="${INPUT_FILE}"
-  echo "▶ Replaying video file: ${INPUT_FILE}..."
+  echo "> Replaying video file: ${INPUT_FILE}..."
   (
     "${PYTHON}" -c "
 import cv2, time, urllib.request, sys
@@ -172,11 +172,11 @@ fi
 
 echo ""
 echo "======================================================================"
-echo "🎉 SiteSentinel Live System Online!"
+echo "SiteSentinel Live System Online"
 echo ""
-echo "   📊 Web Dashboard:       http://localhost:${DASH_PORT}"
-echo "   📡 REST API & Docs:      http://localhost:${PORT}/docs"
-echo "   ⚡ System Engine Report: http://localhost:${PORT}/api/system/engine-report"
+echo "   - Web Dashboard:       http://localhost:${DASH_PORT}"
+echo "   - REST API & Docs:      http://localhost:${PORT}/docs"
+echo "   - System Engine Report: http://localhost:${PORT}/api/system/engine-report"
 echo ""
 echo "Press Ctrl+C to stop all services."
 echo "======================================================================"

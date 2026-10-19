@@ -583,8 +583,10 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div>
-                <label style={{ fontSize: "12px", color: "var(--text-muted)" }}>Zone Classification</label>
+                <label htmlFor="zone-type-select" style={{ fontSize: "12px", color: "var(--text-muted)" }}>Zone Classification</label>
                 <select
+                  id="zone-type-select"
+                  aria-label="Zone Classification"
                   value={activeZone.type}
                   onChange={(e) => {
                     const nextCfg = {

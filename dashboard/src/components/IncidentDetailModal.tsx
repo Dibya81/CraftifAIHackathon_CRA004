@@ -164,7 +164,7 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
                   color: "var(--concrete-100)",
                 }}
               >
-                <div style={{ fontSize: "32px", marginBottom: "8px" }}>📹</div>
+                <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "8px", color: "var(--steel-700)" }}>[CLIP BUFFER]</div>
                 <div>Evidence clip is being encoded in background ring buffer</div>
                 <div style={{ fontSize: "12px", color: "#8E9DA8", marginTop: "4px" }}>
                   10-second blurred event (5s pre / 5s post trigger)
@@ -183,7 +183,7 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
                 fontSize: "11px",
               }}
             >
-              🔒 Face-blurred evidence
+              Face-blurred evidence
             </div>
           </div>
 
@@ -229,7 +229,7 @@ export const IncidentDetailModal: React.FC<IncidentDetailModalProps> = ({
             <h4 style={{ fontSize: "15px", marginBottom: "8px" }}>Incident resolution</h4>
             {incident.acknowledged ? (
               <div style={{ color: "var(--clear-green)", fontWeight: 600, fontSize: "14px" }}>
-                ✓ Acknowledged by {incident.ack_meta?.user || "Safety Officer"} at{" "}
+                Acknowledged by {incident.ack_meta?.user || "Safety Officer"} at{" "}
                 {incident.ack_meta?.acked_at ? new Date(incident.ack_meta.acked_at).toLocaleTimeString() : ""}
                 {incident.ack_meta?.comment && (
                   <div style={{ fontSize: "13px", color: "var(--steel-700)", marginTop: "4px", fontWeight: 400 }}>

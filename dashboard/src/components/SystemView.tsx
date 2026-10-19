@@ -177,7 +177,7 @@ export const SystemView: React.FC<SystemViewProps> = ({ health }) => {
               unit={health.gpu_power_w != null ? "W" : undefined}
             />
             <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--text-muted)" }}>
-              Utilization: {health.gpu_util != null ? `${health.gpu_util}%` : "—"} (NVIDIA Jetson Orin)
+              Utilization: {health.gpu_util != null ? `${health.gpu_util}%` : "— (CPU Mode)"}
             </div>
           </PanelBody>
         </Panel>
@@ -250,7 +250,7 @@ export const SystemView: React.FC<SystemViewProps> = ({ health }) => {
       <Panel>
         <PanelHeader
           title="Edge Optimization: FP32 vs FP16 vs INT8 Performance"
-          subtitle="Real physical benchmarks from PipeGen compilation on NVIDIA Jetson Orin Nano"
+          subtitle="PipeGen compilation metrics (real benchmarks displayed when hardware runs are recorded in ledger)"
         />
         <PanelBody>
           {loading ? (

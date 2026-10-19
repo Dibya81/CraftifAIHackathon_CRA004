@@ -23,7 +23,9 @@ def test_no_known_duplicate_files():
     ]
     for mod in banned_root_modules:
         target = root / "src" / "sentinel" / mod
-        assert not target.exists(), f"Duplicate module {target} must not exist in src/sentinel/ root."
+        assert not target.exists(), (
+            f"Duplicate module {target} must not exist in src/sentinel/ root."
+        )
 
     # Soak duplicate: tools/soak_test.py vs tools/soak.py
     assert not (root / "tools/soak_test.py").exists(), (

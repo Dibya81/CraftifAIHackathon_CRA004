@@ -66,7 +66,7 @@ class JudgeRunner:
         return res.returncode, res.stdout, res.stderr
 
     def check_lint_and_types(self) -> None:
-        print("▶ Stage 1: Running Linter and Type Checking...")
+        print("> Stage 1: Running Linter and Type Checking...")
         t0 = time.time()
 
         # Ruff lint
@@ -85,7 +85,7 @@ class JudgeRunner:
         self.stages.append(JudgeStageResult("Static Typing (Mypy)", True, time.time() - t1, "51 source files type checked."))
 
     def check_ledger(self) -> None:
-        print("▶ Stage 2: Verifying Claims Ledger Integrity...")
+        print("> Stage 2: Verifying Claims Ledger Integrity...")
         t0 = time.time()
         ret, out, err = self.run_command([self.python_exec, "tools/ledger.py", "verify"])
         passed = (ret == 0)
@@ -93,7 +93,7 @@ class JudgeRunner:
         self.stages.append(JudgeStageResult("Claims Ledger Verification", passed, time.time() - t0, msg))
 
     def check_claims_audit(self) -> None:
-        print("▶ Stage 3: Auditing Documentation Claims & Banned Patterns...")
+        print("> Stage 3: Auditing Documentation Claims & Banned Patterns...")
         t0 = time.time()
         ret, out, err = self.run_command([self.python_exec, "tools/audit_claims.py"])
         passed = (ret == 0)
@@ -101,7 +101,7 @@ class JudgeRunner:
         self.stages.append(JudgeStageResult("Documentation Claims Audit", passed, time.time() - t0, msg))
 
     def check_integrity(self) -> None:
-        print("▶ Stage 4: Repository Integrity, Immutability & Safety Checks...")
+        print("> Stage 4: Repository Integrity, Immutability & Safety Checks...")
         t0 = time.time()
         failures = []
 
@@ -256,7 +256,7 @@ class JudgeRunner:
         self.stages.append(JudgeStageResult("Repository Integrity Checks", passed, time.time() - t0, msg))
 
     def check_privacy(self) -> None:
-        print("▶ Stage 5: Privacy by Design Automated Audit (TC-18)...")
+        print("> Stage 5: Privacy by Design Automated Audit (TC-18)...")
         t0 = time.time()
         ev_dir = self.root / "evidence"
         passed, findings = audit_evidence_directory(ev_dir)
@@ -264,7 +264,7 @@ class JudgeRunner:
         self.stages.append(JudgeStageResult("Privacy by Design Audit (TC-18)", passed, time.time() - t0, msg))
 
     def check_evaluation_fixture(self) -> None:
-        print("▶ Stage 6: Offline Evaluation on Test Fixture (TC-21, TC-22)...")
+        print("> Stage 6: Offline Evaluation on Test Fixture (TC-21, TC-22)...")
         t0 = time.time()
         clip_path = "data/simulated/site01-simulated.mp4"
         labels_path = "data/simulated/site01-labels.json"
@@ -277,8 +277,19 @@ class JudgeRunner:
         passed = (ret == 0)
         self.stages.append(JudgeStageResult("Offline Evaluation (TC-21, TC-22)", passed, time.time() - t0, "Offline evaluation on synthetic fixture completed (SIMULATED)."))
 
+    def check_soak(self) -> None:
+        print("> Stage 6.5: Running 2-Minute Soak Stability Check (TC-28)...")
+        t0 = time.time()
+        cmd = [self.python_exec, "tools/soak.py", "--minutes", "2.0", "--fps", "25.0"]
+        if os.getenv("SENTINEL_BENCHMARK_RECORD") == "1":
+            cmd.extend(["--output", "reports/perf/soak_report.md"])
+        ret, out, err = self.run_command(cmd)
+        passed = (ret == 0)
+        msg = "2-minute soak test passed with bounded memory growth." if passed else f"Soak test failed:\n{out}\n{err}"
+        self.stages.append(JudgeStageResult("Soak Stability Check (TC-28)", passed, time.time() - t0, msg))
+
     def run_tests_and_map_matrix(self) -> None:
-        print("▶ Stage 7: Running Full Pytest Test Suite...")
+        print("> Stage 7: Running Full Pytest Test Suite...")
         t0 = time.time()
         cmd = [self.python_exec, "-m", "pytest", "-v", "--tb=short"]
         ret, out, err = self.run_command(cmd)
@@ -287,7 +298,7 @@ class JudgeRunner:
 
         # Collect marker counts
         marker_counts = {}
-        for m in ["sim", "real", "hardware"]:
+        for m in ["sim", "real", "hardware", "fixture"]:
             _, m_out, _ = self.run_command([self.python_exec, "-m", "pytest", "-m", m, "--collect-only", "-q"])
             marker_counts[m] = len([line for line in m_out.splitlines() if "::" in line])
 
@@ -295,7 +306,7 @@ class JudgeRunner:
         _, all_out, _ = self.run_command([self.python_exec, "-m", "pytest", "--collect-only", "-q"])
         self.collected_test_count = len([line for line in all_out.splitlines() if "::" in line])
 
-        marker_str = f"sim={marker_counts['sim']}, real={marker_counts['real']}, hardware={marker_counts['hardware']}"
+        marker_str = f"sim={marker_counts['sim']}, real={marker_counts['real']}, hardware={marker_counts['hardware']}, fixture={marker_counts['fixture']}"
         print(f"   Marker counts: {marker_str} (Total: {self.collected_test_count})")
 
         self.stages.append(JudgeStageResult("Test Suite Execution", passed, time.time() - t0, f"Pytest suite executed ({self.collected_test_count} tests, {marker_str})."))
@@ -346,7 +357,7 @@ class JudgeRunner:
             matrix_lines.append(f"| **{tc_id}** | `{spec.get('category')}` | {spec.get('title')} | {badge} | {notes} |")
 
         matrix_path.write_text("\n".join(matrix_lines) + "\n", encoding="utf-8")
-        print(f"📄 Wrote {matrix_path}")
+        print(f"[REPORT] Wrote {matrix_path}")
 
         # 2. JUDGE_REPORT.md
         all_passed = all(s.passed for s in self.stages)
@@ -401,7 +412,7 @@ class JudgeRunner:
         ])
 
         judge_path.write_text("\n".join(judge_lines) + "\n", encoding="utf-8")
-        print(f"📄 Wrote {judge_path}")
+        print(f"[REPORT] Wrote {judge_path}")
 
     def execute(self) -> int:
         print("==========================================================")
@@ -414,6 +425,7 @@ class JudgeRunner:
         self.check_integrity()
         self.check_privacy()
         self.check_evaluation_fixture()
+        self.check_soak()
         self.run_tests_and_map_matrix()
         self.write_reports()
 
@@ -422,11 +434,11 @@ class JudgeRunner:
 
         print("\n==========================================================")
         if all_passed:
-            print(f"🎉 JUDGE PASSED (CONDITIONAL): All software stages completed in {total_time:.2f}s.")
+            print(f"[PASS] JUDGE PASSED (CONDITIONAL): All software stages completed in {total_time:.2f}s.")
             print("==========================================================")
             return 0
         else:
-            print(f"❌ JUDGE FAILED: One or more stages failed. Total time: {total_time:.2f}s.")
+            print(f"[FAIL] JUDGE FAILED: One or more stages failed. Total time: {total_time:.2f}s.")
             print("==========================================================")
             return 1
 

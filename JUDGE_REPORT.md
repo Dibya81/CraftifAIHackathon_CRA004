@@ -1,28 +1,29 @@
 # SiteSentinel: Automated Judge Verification Report
 
-- **Execution Date**: `2026-10-18 21:30:12 UTC`
+- **Execution Date**: `2026-10-19 09:39:40 UTC`
 - **Host Platform**: `Darwin arm64`
 - **Python Version**: `3.11.15`
-- **Total Judge Duration**: `6.58 seconds` (Target < 180 s)
+- **Total Judge Duration**: `9.70 seconds` (Target < 180 s)
 - **Overall Evaluation Status**: **CONDITIONAL PASS (Hardware evidence pending)**
 
 ## Judge Stages Summary
 | Stage | Status | Duration | Details |
 |---|---|---|---|
-| Linting (Ruff) | PASS | `0.03s` | All ruff rules passed. |
-| Static Typing (Mypy) | PASS | `0.41s` | 51 source files type checked. |
+| Linting (Ruff) | PASS | `0.07s` | All ruff rules passed. |
+| Static Typing (Mypy) | PASS | `0.24s` | 51 source files type checked. |
 | Claims Ledger Verification | PASS | `0.04s` | Ledger hashes and source provenance verified. |
-| Documentation Claims Audit | PASS | `0.03s` | Documentation claims verified against ledger (0 violations). |
-| Repository Integrity Checks | PASS | `1.38s` | All integrity checks passed. |
-| Privacy by Design Audit (TC-18) | PASS | `0.01s` | Evidence directory verified with 0 face violations (0 findings). |
-| Offline Evaluation (TC-21, TC-22) | PASS | `0.21s` | Offline evaluation on synthetic fixture completed (SIMULATED). |
-| Test Suite Execution | PASS | `4.47s` | Pytest suite executed (101 tests, sim=1, real=1, hardware=2). |
+| Documentation Claims Audit | PASS | `0.10s` | Documentation claims verified against ledger (0 violations). |
+| Repository Integrity Checks | PASS | `1.91s` | All integrity checks passed. |
+| Privacy by Design Audit (TC-18) | PASS | `0.04s` | Evidence directory verified with 0 face violations (0 findings). |
+| Offline Evaluation (TC-21, TC-22) | PASS | `0.23s` | Offline evaluation on synthetic fixture completed (SIMULATED). |
+| Soak Stability Check (TC-28) | PASS | `1.01s` | 2-minute soak test passed with bounded memory growth. |
+| Test Suite Execution | PASS | `6.04s` | Pytest suite executed (144 tests, sim=1, real=1, hardware=2, fixture=0). |
 
 ## Evidence & Claims Verification Matrix
 
 | Item / Claim | Measured on this machine | Simulated / synthetic | Pending hardware run | Status | Source / Proof |
 |---|---|---|---|---|---|
-| Python Test Suite (101 tests) | YES | No | No | MEASURED | `pytest` run |
+| Python Test Suite (144 tests) | YES | No | No | MEASURED | `pytest` run |
 | Static Typing & Linting | YES | No | No | MEASURED | `mypy` + `ruff` |
 | Claims Ledger Verification | YES | No | No | MEASURED | `evidence/ledger.yaml` |
 | Documentation Claims Audit | YES | No | No | MEASURED | `tools/audit_claims.py` |

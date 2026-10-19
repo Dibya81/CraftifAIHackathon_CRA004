@@ -19,7 +19,8 @@ def test_tc04_pipegen_export_hash_manifest():
     assert export_dir.exists(), "pipegen/export directory must exist."
 
     real_files = [
-        f for f in export_dir.iterdir()
+        f
+        for f in export_dir.iterdir()
         if f.is_file() and f.name not in {".gitkeep", ".manifest.sha256"}
     ]
     if not real_files:

@@ -41,7 +41,9 @@ class SentinelMQTTClient:
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
 
-    def _on_connect(self, client: Client, userdata: Any, flags: Any, rc: Any, properties: Any = None) -> None:
+    def _on_connect(
+        self, client: Client, userdata: Any, flags: Any, rc: Any, properties: Any = None
+    ) -> None:
         if rc == 0:
             self.connected = True
             logger.info("Connected to MQTT broker at %s:%d", self.config.host, self.config.port)
@@ -51,7 +53,9 @@ class SentinelMQTTClient:
             self.connected = False
             logger.error("Failed to connect to MQTT broker, return code: %s", rc)
 
-    def _on_disconnect(self, client: Client, userdata: Any, flags: Any, rc: Any, properties: Any = None) -> None:
+    def _on_disconnect(
+        self, client: Client, userdata: Any, flags: Any, rc: Any, properties: Any = None
+    ) -> None:
         self.connected = False
         if rc != 0:
             logger.warning("Unexpected MQTT disconnection (rc=%s). Auto-reconnecting...", rc)

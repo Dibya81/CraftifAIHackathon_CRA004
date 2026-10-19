@@ -12,17 +12,60 @@ entries:
   # ─── Test suite ───────────────────────────────────────────────────────────────
   - id: TC-COUNT
     claim: "Python unit/integration test count (pytest --collect-only)"
-    value: 101
+    value: 144
     status: MEASURED
     source_file: "tests/"
     sha256: "n/a-directory"
     command: ".venv/bin/pytest --collect-only -q"
-    produced_at: "2026-10-19T02:57:04+05:30"
+    produced_at: "2026-10-19T14:41:18+05:30"
     environment:
-      os: "macOS-26.5-arm64"
+      os: "Darwin arm64"
       python: "3.11.15"
       gpu: "none"
-    notes: "Count from pytest --collect-only: 101 collected (99 passed, 2 skipped pending real PipeGen export/sample)."
+    notes: "Count from pytest --collect-only: 144 collected (142 passed, 2 skipped pending real PipeGen hardware sample)."
+
+  # ─── Host CPU Performance (MEASURED on local machine) ─────────────────────────
+  - id: PERF-THROUGHPUT-CPU
+    claim: "Rule engine throughput on 20 persons at 25 frames/second (CPU host)"
+    value: 1141.5
+    status: MEASURED
+    source_file: "reports/perf/rule_engine_throughput.md"
+    sha256: "949ab15b2847b15652b2ff0f7b37d52c9cc931b1e56526f60f3d805607333971"
+    command: ".venv/bin/pytest tests/perf/test_benchmarks.py::test_tc26_rule_engine_high_throughput_cpu"
+    produced_at: "2026-10-19T14:42:00+05:30"
+    environment:
+      os: "Darwin arm64"
+      python: "3.11.15"
+      gpu: "none"
+    notes: "MEASURED (CPU host): p99 step time < 1.0 ms (target < 5.0 ms), single-core util < 3%."
+
+  - id: PERF-LATENCY-API
+    claim: "REST API health check mean response latency on CPU host (ms)"
+    value: 1.0
+    status: MEASURED
+    source_file: "reports/perf/api_latency.md"
+    sha256: "1bee8e6dbc52c5e88ad519e253417aa3d39396f9ffd703c00316740e2400c3af"
+    command: ".venv/bin/pytest tests/perf/test_benchmarks.py::test_tc25_violation_start_to_publish_latency"
+    produced_at: "2026-10-19T14:42:00+05:30"
+    environment:
+      os: "Darwin arm64"
+      python: "3.11.15"
+      gpu: "none"
+    notes: "MEASURED (CPU host): mean API latency < 2 ms."
+
+  - id: PERF-SOAK-STABILITY
+    claim: "Sustained frame processing soak stability over 3000 frames (RSS memory delta MB)"
+    value: 0.09
+    status: MEASURED
+    source_file: "reports/perf/soak_report.md"
+    sha256: "2a3741653632db75023533a97481e2f5aa87e7c4c695bccacb569c079940f87c"
+    command: ".venv/bin/python tools/soak.py --minutes 2.0 --fps 25.0 --output reports/perf/soak_report.md"
+    produced_at: "2026-10-19T14:40:39+05:30"
+    environment:
+      os: "Darwin arm64"
+      python: "3.11.15"
+      gpu: "none"
+    notes: "MEASURED (CPU host): RSS delta 0.09 MB over 3000 frames, active tracks bounded."
 
   # ─── Simulator eval (SIMULATED — labels written by tools/simulate.py) ─────────
   - id: EVAL-PRECISION-SIM

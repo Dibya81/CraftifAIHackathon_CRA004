@@ -104,9 +104,7 @@ class PipeGenAdapter:
         except (ValueError, TypeError):
             return None
 
-    def _parse_timestamp(
-        self, data: Dict[str, Any], frame_id: int
-    ) -> float:
+    def _parse_timestamp(self, data: Dict[str, Any], frame_id: int) -> float:
         """Extract and normalize timestamp from data dict."""
         for field in ("ts", "timestamp", "@timestamp", "time"):
             if field in data and data[field] is not None:
@@ -191,7 +189,11 @@ class PipeGenAdapter:
 
         # De-normalize if coordinates are normalized [0.0, 1.0]
         if self.bbox_normalized or (
-            0.0 <= x1 <= 1.0 and 0.0 <= x2 <= 1.0 and 0.0 <= y1 <= 1.0 and 0.0 <= y2 <= 1.0 and max(x2, y2) <= 1.0
+            0.0 <= x1 <= 1.0
+            and 0.0 <= x2 <= 1.0
+            and 0.0 <= y1 <= 1.0
+            and 0.0 <= y2 <= 1.0
+            and max(x2, y2) <= 1.0
         ):
             x1 *= frame_w
             x2 *= frame_w
@@ -232,13 +234,20 @@ class PipeGenAdapter:
         # Parse box coordinates
         if len(tokens) == 6:
             # track_id|class|x|y|w|h
-            box = self._parse_box([tokens[2], tokens[3], tokens[4], tokens[5]], frame_w, frame_h, bbox_format="xywh")
+            box = self._parse_box(
+                [tokens[2], tokens[3], tokens[4], tokens[5]], frame_w, frame_h, bbox_format="xywh"
+            )
             conf = 0.8
         elif len(tokens) >= 7:
             # track_id|class|x|y|w|h|conf or track_id|class|x1|y1|x2|y2|conf
             conf_val = self._safe_float(tokens[6]) or 0.8
             conf = conf_val
-            box = self._parse_box([tokens[2], tokens[3], tokens[4], tokens[5]], frame_w, frame_h, bbox_format=self.bbox_format)
+            box = self._parse_box(
+                [tokens[2], tokens[3], tokens[4], tokens[5]],
+                frame_w,
+                frame_h,
+                bbox_format=self.bbox_format,
+            )
         else:
             return None
 
@@ -252,9 +261,7 @@ class PipeGenAdapter:
             track_id=raw_track,
         )
 
-    def _parse_deepstream_array_payload(
-        self, data: Dict[str, Any]
-    ) -> Optional[FrameMeta]:
+    def _parse_deepstream_array_payload(self, data: Dict[str, Any]) -> Optional[FrameMeta]:
         """Parse NVIDIA DeepStream standard schema (nvmsgconv full array)."""
         camera_id = str(
             data.get("sensorId")
@@ -366,7 +373,11 @@ class PipeGenAdapter:
         frame_dims = FrameDimensions(width=1920, height=1080)
 
         if isinstance(data_or_str, dict):
-            camera_id = str(data_or_str.get("sensorId") or data_or_str.get("camera_id") or self.default_camera_id)
+            camera_id = str(
+                data_or_str.get("sensorId")
+                or data_or_str.get("camera_id")
+                or self.default_camera_id
+            )
             raw_fid = data_or_str.get("frameId") or data_or_str.get("frame_id", 0)
             try:
                 frame_id = int(raw_fid)
@@ -619,12 +630,7 @@ class PipeGenAdapter:
         if mode == "auto":
             # Heuristic detection: check deepstream_pipe before deepstream_array
             objs = data.get("objects")
-            if (
-                isinstance(objs, list)
-                and objs
-                and isinstance(objs[0], str)
-                and "|" in objs[0]
-            ):
+            if isinstance(objs, list) and objs and isinstance(objs[0], str) and "|" in objs[0]:
                 mode = "deepstream_pipe"
             elif (
                 "sensorId" in data
@@ -686,9 +692,7 @@ class PipeGenAdapter:
             frame=FrameDimensions(width=1920, height=1080),
         )
 
-    def diagnose_payload(
-        self, payload: Union[str, bytes, Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def diagnose_payload(self, payload: Union[str, bytes, Dict[str, Any]]) -> Dict[str, Any]:
         """Perform self-diagnosis on a sample payload and report parser evaluations and field mappings."""
         report: Dict[str, Any] = {
             "parsed_successfully": False,

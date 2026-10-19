@@ -544,7 +544,7 @@ export const HealthBar: React.FC<HealthBarProps> = ({
         <div
           role="alert"
           style={{
-            backgroundColor: "var(--danger)",
+            backgroundColor: "#b83204",
             color: "#FFFFFF",
             padding: "6px 16px",
             fontSize: "12px",

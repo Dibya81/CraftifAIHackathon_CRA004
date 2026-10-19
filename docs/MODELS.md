@@ -4,7 +4,7 @@ This document details the CPU-compatible baseline models tested for software dev
 
 > [!IMPORTANT]
 > **Baseline Model Disclaimer**:
-> These models run on CPU using ONNX Runtime. They serve as a **software baseline** for local development, tests, and clip evaluation in the absence of an NVIDIA Jetson GPU.
+> These models run on CPU using ONNX Runtime. They serve as a **software baseline** for local development, tests, and clip evaluation in the absence of physical edge GPU hardware.
 > All metrics generated using these baseline models are recorded in `evidence/ledger.yaml` under status `BASELINE` or `MEASURED (baseline)`. They **never** substitute for hardware-compiled PipeGen DeepStream + TensorRT output.
 >
 > In accordance with repository constraints, **model weight files are never committed to git**. Weights must be fetched via `scripts/fetch_baseline_model.sh`.

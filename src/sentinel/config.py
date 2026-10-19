@@ -75,12 +75,8 @@ class AdapterConfig(BaseModel):
     class_fields: List[str] = Field(
         default_factory=lambda: ["class", "type", "label", "class_id", "classId"]
     )
-    conf_fields: List[str] = Field(
-        default_factory=lambda: ["conf", "confidence", "score"]
-    )
-    bbox_fields: List[str] = Field(
-        default_factory=lambda: ["bbox", "box", "rect"]
-    )
+    conf_fields: List[str] = Field(default_factory=lambda: ["conf", "confidence", "score"])
+    bbox_fields: List[str] = Field(default_factory=lambda: ["bbox", "box", "rect"])
 
 
 class SentinelConfig(BaseModel):

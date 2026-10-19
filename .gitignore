@@ -30,10 +30,13 @@ logs/*
 .coverage
 .coverage.*
 dashboard/dist/
+dashboard/test-results/
 .local/
 .agents/
 reports/eval_20*.json
 reports/eval_20*.md
+reports/simulated/eval_20*.json
+reports/simulated/eval_20*.md
 reports/eval_thumbnails/
 data/dataset/
 offline/

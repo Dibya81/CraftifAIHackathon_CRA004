@@ -251,7 +251,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
       {/* Incident List Rows */}
       <div
         ref={feedListRef}
-        role="list"
+        role={filtered.length > 0 ? "list" : undefined}
         aria-live="polite"
         style={{
           flex: 1,
@@ -262,6 +262,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({
       >
         {filtered.length === 0 ? (
           <div
+            role="status"
             style={{
               padding: "32px 16px",
               textAlign: "center",

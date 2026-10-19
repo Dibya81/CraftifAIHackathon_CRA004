@@ -448,7 +448,7 @@ export const IncidentDetailDrawer: React.FC<IncidentDetailDrawerProps> = ({
             <h4 style={{ fontSize: "14px", fontWeight: 600 }}>Officer Resolution</h4>
             {isAcked ? (
               <div style={{ color: "var(--ok-strong)", fontSize: "13px" }}>
-                ✓ Acknowledged by {incident.acked_by || "safety-officer"} at{" "}
+                Acknowledged by {incident.acked_by || "safety-officer"} at{" "}
                 {incident.acked_at ? new Date(incident.acked_at).toLocaleTimeString() : ""}
               </div>
             ) : (

@@ -44,14 +44,18 @@ export const CommandPalette: React.FC = () => {
     { id: "nav-zones", title: "Jump to Zone Editor", icon: <Map size={16} />, shortcut: "G Z", action: () => navigate("/zones") },
     { id: "nav-reports", title: "Jump to Reports & Trends", icon: <BarChart3 size={16} />, shortcut: "G R", action: () => navigate("/reports") },
     { id: "nav-system", title: "Jump to System & Edge Telemetry", icon: <Cpu size={16} />, shortcut: "G S", action: () => navigate("/system") },
-    { id: "nav-design", title: "Jump to Design Tokens Gallery", icon: <Palette size={16} />, shortcut: "G D", action: () => navigate("/design") },
     { id: "act-present", title: "Toggle Present Mode", icon: <Maximize2 size={16} />, shortcut: "P", action: () => togglePresentMode() },
     { id: "act-theme", title: `Switch to ${theme === "light" ? "Dark (Control Room)" : "Light"} Theme`, icon: theme === "light" ? <Moon size={16} /> : <Sun size={16} />, action: () => toggleTheme() },
-    { id: "sc-calm", title: "Dev Scenario: Calm Shift", icon: <Video size={16} />, action: () => { window.location.search = "?scenario=calm"; } },
-    { id: "sc-busy", title: "Dev Scenario: Busy Shift", icon: <AlertTriangle size={16} />, action: () => { window.location.search = "?scenario=busy_shift"; } },
-    { id: "sc-cam-lost", title: "Dev Scenario: Camera Lost", icon: <Video size={16} />, action: () => { window.location.search = "?scenario=camera_lost"; } },
-    { id: "sc-mqtt-down", title: "Dev Scenario: MQTT Down", icon: <Cpu size={16} />, action: () => { window.location.search = "?scenario=mqtt_down"; } },
-    { id: "sc-many", title: "Dev Scenario: Many Incidents (300+)", icon: <AlertTriangle size={16} />, action: () => { window.location.search = "?scenario=many_incidents"; } },
+    ...(import.meta.env.DEV
+      ? [
+          { id: "nav-design", title: "Jump to Design Tokens Gallery", icon: <Palette size={16} />, shortcut: "G D", action: () => navigate("/design") },
+          { id: "sc-calm", title: "Dev Scenario: Calm Shift", icon: <Video size={16} />, action: () => { window.location.search = "?scenario=calm"; } },
+          { id: "sc-busy", title: "Dev Scenario: Busy Shift", icon: <AlertTriangle size={16} />, action: () => { window.location.search = "?scenario=busy_shift"; } },
+          { id: "sc-cam-lost", title: "Dev Scenario: Camera Lost", icon: <Video size={16} />, action: () => { window.location.search = "?scenario=camera_lost"; } },
+          { id: "sc-mqtt-down", title: "Dev Scenario: MQTT Down", icon: <Cpu size={16} />, action: () => { window.location.search = "?scenario=mqtt_down"; } },
+          { id: "sc-many", title: "Dev Scenario: Many Incidents (300+)", icon: <AlertTriangle size={16} />, action: () => { window.location.search = "?scenario=many_incidents"; } },
+        ]
+      : []),
   ];
 
   const filtered = actions.filter((a) =>

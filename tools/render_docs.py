@@ -186,13 +186,13 @@ def check_all_docs() -> int:
     for doc in [README_PATH, SUBMISSION_PATH]:
         v = check_unrendered_metrics(doc)
         if v:
-            print(f"❌ {doc.name} contains {len(v)} hand-typed metric number(s) outside generated blocks:")
+            print(f"[FAIL] {doc.name} contains {len(v)} hand-typed metric number(s) outside generated blocks:")
             for line_no, content, msg in v:
                 print(f"   L{line_no}: {msg}")
                 print(f"        \"{content.strip()[:90]}\"")
             violations.extend(v)
         else:
-            print(f"✅ {doc.name}: zero hand-typed metric numbers outside generated blocks")
+            print(f"[PASS] {doc.name}: zero hand-typed metric numbers outside generated blocks")
 
     return 0 if not violations else 1
 

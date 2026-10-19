@@ -104,27 +104,72 @@ def check_markdown_file(path: Path) -> List[Tuple[int, str, str]]:
     return violations
 
 
+def check_code_or_bundle_file(path: Path) -> List[Tuple[int, str, str]]:
+    """Scan a source code or built bundle file for banned claims."""
+    violations = []
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except Exception:
+        return violations
+
+    for idx, line in enumerate(lines, start=1):
+        lower_line = line.lower()
+        if "false claim of" in lower_line or "prohibited pattern" in lower_line:
+            continue
+
+        for regex, msg in STRICT_BANNED:
+            if regex.search(line):
+                violations.append((idx, line, msg))
+
+        has_exemption = any(exempt in lower_line for exempt in CONTEXT_EXEMPTION_WORDS)
+        for regex, msg in CONTEXT_SENSITIVE_BANNED:
+            if regex.search(line) and not has_exemption:
+                violations.append((idx, line, msg))
+
+    return violations
+
+
 def audit_repository(root_dir: Path) -> int:
-    """Audit all documentation markdown files in root_dir."""
+    """Audit documentation, code comments, docstrings, and dashboard bundle."""
     docs_to_check = [
         root_dir / "README.md",
         root_dir / "SUBMISSION.md",
         root_dir / "JUDGE_REPORT.md",
         root_dir / "REQUIREMENTS_MATRIX.md",
         root_dir / "docs" / "ARCHITECTURE.md",
+        root_dir / "docs" / "RUNBOOK.md",
+        root_dir / "docs" / "DATA_PROTOCOL.md",
+        root_dir / "docs" / "DETECTION_SCHEMA.md",
+        root_dir / "docs" / "MODELS.md",
+        root_dir / "demo" / "CHECKLIST.md",
     ]
-    
-    # Also check any .md files directly under reports/
+
     reports_dir = root_dir / "reports"
     if reports_dir.exists():
         for r_md in reports_dir.glob("*.md"):
             docs_to_check.append(r_md)
-            
+
+    # Tracked code and dashboard files
+    code_files: List[Path] = []
+    for pattern in ["src/**/*.py", "tools/**/*.py", "scripts/**/*.py", "dashboard/src/**/*.ts", "dashboard/src/**/*.tsx", "dashboard/index.html"]:
+        for p in root_dir.glob(pattern):
+            if p.is_file() and p.name not in {"audit_claims.py", "judge.py", "ledger.py"}:
+                code_files.append(p)
+
+    # Built bundle files if present
+    bundle_files: List[Path] = []
+    dist_dir = root_dir / "dashboard" / "dist"
+    if dist_dir.exists():
+        for f in dist_dir.rglob("*"):
+            if f.is_file() and f.suffix in {".js", ".html", ".css"}:
+                bundle_files.append(f)
+
     total_violations = 0
     print("==========================================================")
-    print(" SiteSentinel: Documentation Claims & Integrity Audit")
+    print(" SiteSentinel: Comprehensive Claims & Text Audit")
     print("==========================================================\n")
-    
+
+    print(f"Auditing {len(docs_to_check)} documentation files...")
     for doc_path in docs_to_check:
         if not doc_path.exists():
             continue
@@ -138,10 +183,37 @@ def audit_repository(root_dir: Path) -> int:
             total_violations += len(violations)
         else:
             print(f"[PASS] {rel_path}: 0 violations")
-            
+
+    print(f"\nAuditing {len(code_files)} code and dashboard source files...")
+    code_violations = 0
+    for code_path in code_files:
+        violations = check_code_or_bundle_file(code_path)
+        if violations:
+            rel_path = code_path.relative_to(root_dir)
+            print(f"[FAIL] {rel_path} has {len(violations)} violation(s):")
+            for line_no, content, msg in violations:
+                print(f"   L{line_no}: {msg}")
+            code_violations += len(violations)
+    if code_violations == 0:
+        print(f"[PASS] All {len(code_files)} source files clean (0 violations)")
+    total_violations += code_violations
+
+    if bundle_files:
+        print(f"\nAuditing {len(bundle_files)} built dashboard bundle files...")
+        bundle_violations = 0
+        for b_path in bundle_files:
+            violations = check_code_or_bundle_file(b_path)
+            if violations:
+                rel_path = b_path.relative_to(root_dir)
+                print(f"[FAIL] {rel_path} has {len(violations)} violation(s)")
+                bundle_violations += len(violations)
+        if bundle_violations == 0:
+            print(f"[PASS] Built dashboard bundle clean (0 violations)")
+        total_violations += bundle_violations
+
     print("\n----------------------------------------------------------")
     if total_violations == 0:
-        print("ALL DOCUMENTATION AUDIT CHECKS PASSED (0 violations)")
+        print("ALL TEXT & CLAIMS AUDIT CHECKS PASSED (0 violations)")
         print("----------------------------------------------------------")
         return 0
     else:
@@ -151,7 +223,7 @@ def audit_repository(root_dir: Path) -> int:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Audit claims in markdown files.")
+    parser = argparse.ArgumentParser(description="Audit claims across documentation, code, and bundle.")
     parser.add_argument("--root", type=str, default=".", help="Root repo directory")
     args = parser.parse_args()
     sys.exit(audit_repository(Path(args.root).resolve()))

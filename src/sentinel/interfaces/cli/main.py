@@ -26,7 +26,10 @@ app = typer.Typer(
 @app.command()
 def doctor(
     payload: Optional[str] = typer.Option(
-        None, "--payload", "-p", help="Path to sample payload or NDJSON file for adapter format self-diagnosis"
+        None,
+        "--payload",
+        "-p",
+        help="Path to sample payload or NDJSON file for adapter format self-diagnosis",
     ),
     hardware: bool = typer.Option(
         False, "--hardware", help="Run comprehensive edge hardware environment diagnostics"
@@ -39,7 +42,9 @@ def doctor(
         typer.echo(f"Diagnosing detector payload format: {payload}\n")
         diag = diagnose_payload_file(payload)
         if not diag.get("parsed_successfully"):
-            typer.secho("FAIL: Could not successfully parse payload.", fg=typer.colors.RED, bold=True)
+            typer.secho(
+                "FAIL: Could not successfully parse payload.", fg=typer.colors.RED, bold=True
+            )
             for warn in diag.get("warnings", []):
                 typer.echo(f"  Warning: {warn}")
             for rec in diag.get("recommendations", []):
@@ -92,7 +97,11 @@ def doctor(
                 if check.get("fix"):
                     typer.echo(f"         Recommendation: {check['fix']}")
             else:  # BLOCKER
-                typer.secho(f"  [BLOCKER] {check['name']}: {check['detail']}", fg=typer.colors.RED, bold=True)
+                typer.secho(
+                    f"  [BLOCKER] {check['name']}: {check['detail']}",
+                    fg=typer.colors.RED,
+                    bold=True,
+                )
                 if check.get("fix"):
                     typer.echo(f"            Recommendation: {check['fix']}")
 
@@ -110,7 +119,9 @@ def doctor(
                 fg=typer.colors.YELLOW,
             )
         else:
-            typer.secho("PASSED: All edge hardware checks verified.", fg=typer.colors.GREEN, bold=True)
+            typer.secho(
+                "PASSED: All edge hardware checks verified.", fg=typer.colors.GREEN, bold=True
+            )
         return
 
     typer.echo("Running SiteSentinel System Diagnostics...\n")
@@ -120,11 +131,7 @@ def doctor(
         symbol = (
             "[PASS]"
             if item["ok"]
-            else (
-                "[WARN]"
-                if "GPU" in item["check"] or "Mosquitto" in item["check"]
-                else "[FAIL]"
-            )
+            else ("[WARN]" if "GPU" in item["check"] or "Mosquitto" in item["check"] else "[FAIL]")
         )
         typer.echo(f"{symbol} {item['check']}: {item['message']}")
         if not item["ok"] and item["fix"]:
@@ -144,7 +151,9 @@ def doctor(
 def replay(
     capture: str = typer.Argument(..., help="Path to NDJSON capture file"),
     speed: float = typer.Option(1.0, help="Playback speed multiplier (0.0 for instant max speed)"),
-    save_incidents: bool = typer.Option(True, help="Persist raised incidents to logs/incidents.jsonl and database"),
+    save_incidents: bool = typer.Option(
+        True, help="Persist raised incidents to logs/incidents.jsonl and database"
+    ),
     dry_run: bool = typer.Option(False, help="Do not persist or broadcast incidents"),
 ):
     """Deterministically replay a captured stream of detection frames through the adapter and rule engine."""
@@ -556,16 +565,22 @@ def verify_log(
                     bold=True,
                 )
                 if missing_in_db:
-                    typer.secho(f"   In JSONL but missing in DB: {missing_in_db}", fg=typer.colors.RED)
+                    typer.secho(
+                        f"   In JSONL but missing in DB: {missing_in_db}", fg=typer.colors.RED
+                    )
                 if missing_in_jsonl:
-                    typer.secho(f"   In DB but missing in JSONL: {missing_in_jsonl}", fg=typer.colors.RED)
+                    typer.secho(
+                        f"   In DB but missing in JSONL: {missing_in_jsonl}", fg=typer.colors.RED
+                    )
                 raise typer.Exit(code=1)
             typer.secho(
                 f"[PASS] Database cross-check passed: {len(jsonl_ids)} incidents verified in parity with {target_db}",
                 fg=typer.colors.GREEN,
             )
         except sqlite3.Error as e:
-            typer.secho(f"[WARN] Database cross-check encountered error: {e}", fg=typer.colors.YELLOW)
+            typer.secho(
+                f"[WARN] Database cross-check encountered error: {e}", fg=typer.colors.YELLOW
+            )
 
     typer.secho(
         f"[PASS] Log integrity chain verified: 0 tampering detected across {log_file}",
@@ -579,15 +594,14 @@ def booth(
     step: Optional[int] = typer.Option(
         None, "--step", "-s", help="Run only a specific step index (1-10)"
     ),
-    reset: bool = typer.Option(
-        False, "--reset", help="Reset booth day state file before running"
-    ),
+    reset: bool = typer.Option(False, "--reset", help="Reset booth day state file before running"),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Preview step checklist and budget without executing commands"
     ),
 ):
     """Interactive, resumable step-by-step booth day execution runner (scripts/booth_day.sh)."""
     import subprocess
+
     cmd = ["bash", "scripts/booth_day.sh"]
     if reset:
         cmd.append("--reset")

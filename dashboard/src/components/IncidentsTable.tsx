@@ -185,6 +185,7 @@ export const IncidentsTable: React.FC<IncidentsTableProps> = ({
         </div>
 
         <select
+          aria-label="Filter by severity"
           value={severityFilter}
           onChange={(e) => updateParam("severity", e.target.value)}
           style={{
@@ -203,6 +204,7 @@ export const IncidentsTable: React.FC<IncidentsTableProps> = ({
         </select>
 
         <select
+          aria-label="Filter by violation type"
           value={typeFilter}
           onChange={(e) => updateParam("type", e.target.value)}
           style={{
@@ -222,6 +224,7 @@ export const IncidentsTable: React.FC<IncidentsTableProps> = ({
         </select>
 
         <select
+          aria-label="Filter by status"
           value={statusFilter}
           onChange={(e) => updateParam("status", e.target.value)}
           style={{

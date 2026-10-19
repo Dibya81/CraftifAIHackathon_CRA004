@@ -108,7 +108,14 @@ def test_ingest_happy_path_in_temp_dir(tmp_path: Path):
 
 def test_ledger_promote_missing_file_refused():
     proc = subprocess.run(
-        [sys.executable, "tools/ledger.py", "promote", "PIPEGEN-EXPORT", "--source", "nonexistent/file.sha256"],
+        [
+            sys.executable,
+            "tools/ledger.py",
+            "promote",
+            "PIPEGEN-EXPORT",
+            "--source",
+            "nonexistent/file.sha256",
+        ],
         capture_output=True,
         text=True,
     )
@@ -123,7 +130,10 @@ def test_ledger_promote_hardware_without_gpu_refused():
         text=True,
     )
     assert proc.returncode == 1
-    assert "Hardware claim cannot be promoted to MEASURED without real hardware named in environment.gpu" in proc.stderr
+    assert (
+        "Hardware claim cannot be promoted to MEASURED without real hardware named in environment.gpu"
+        in proc.stderr
+    )
 
 
 def test_ledger_promote_fixture_refused():

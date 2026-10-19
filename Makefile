@@ -26,6 +26,7 @@ test:
 
 test-dashboard:
 	npm --prefix dashboard test
+	npm --prefix dashboard run test:e2e
 
 build-dashboard:
 	npm --prefix dashboard run build

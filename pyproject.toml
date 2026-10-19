@@ -56,4 +56,5 @@ markers = [
     "sim: Tests running on simulated data or synthetic pipeline",
     "real: Tests running on real video or real detection data",
     "hardware: Tests running on physical GPU or hardware components",
+    "fixture: Tests exercising offline fixture artifacts",
 ]

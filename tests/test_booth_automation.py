@@ -95,7 +95,9 @@ def test_make_offline_bundle_dry_run():
 def test_booth_day_state_persistence(tmp_path: Path):
     """Booth day state file tracks completed steps idempotently."""
     state_file = tmp_path / "test_booth_state.json"
-    state_file.write_text(json.dumps({"completed_steps": [1, 2], "artifacts": {}}), encoding="utf-8")
+    state_file.write_text(
+        json.dumps({"completed_steps": [1, 2], "artifacts": {}}), encoding="utf-8"
+    )
 
     data = json.loads(state_file.read_text(encoding="utf-8"))
     assert 1 in data["completed_steps"]

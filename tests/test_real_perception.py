@@ -112,6 +112,7 @@ def test_dataset_split_generation_and_validation(tmp_path: Path):
     # Create dummy video clip
     clip_path = clips_dir / "clip_a.mp4"
     import cv2
+
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     vw = cv2.VideoWriter(str(clip_path), fourcc, 25.0, (320, 240))
     for _ in range(30):
@@ -120,10 +121,12 @@ def test_dataset_split_generation_and_validation(tmp_path: Path):
 
     labels_file = labels_dir / "clip_a.json"
     labels_file.write_text(
-        json.dumps({
-            "clip": "clip_a.mp4",
-            "violations": [{"person": "w1", "type": "NO_HELMET", "start_s": 0.2, "end_s": 0.8}],
-        }),
+        json.dumps(
+            {
+                "clip": "clip_a.mp4",
+                "violations": [{"person": "w1", "type": "NO_HELMET", "start_s": 0.2, "end_s": 0.8}],
+            }
+        ),
         encoding="utf-8",
     )
 

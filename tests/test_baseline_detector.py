@@ -62,7 +62,9 @@ def test_baseline_detector_on_real_fixture_clip():
             ret, frame = cap.read()
             if not ret or frame is None:
                 break
-            meta = detector.detect(frame, frame_id=frames_processed + 1, timestamp=frames_processed * 0.04)
+            meta = detector.detect(
+                frame, frame_id=frames_processed + 1, timestamp=frames_processed * 0.04
+            )
             assert meta.frame_id == frames_processed + 1
             assert meta.frame.width == frame.shape[1]
             assert meta.frame.height == frame.shape[0]

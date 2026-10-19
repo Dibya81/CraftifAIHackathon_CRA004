@@ -347,7 +347,7 @@ export const VideoPlayerWithZones: React.FC<VideoPlayerWithZonesProps> = ({
                 borderRadius: "4px",
                 fontFamily: "var(--font-mono)",
                 fontSize: "12px",
-                color: "var(--info-strong)",
+                color: "#99c8ff",
                 marginBottom: "12px",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
               }}
