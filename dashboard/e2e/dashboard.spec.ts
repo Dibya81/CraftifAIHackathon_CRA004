@@ -309,7 +309,7 @@ test.describe("SiteSentinel Control Room Dashboard E2E", () => {
     await page.screenshot({ path: path.join(screenshotDir, "dashboard-system.png") });
   });
 
-  test("10. Production bundle purity: no mock data and no dev routes", async () => {
+  test("10. Production bundle purity: no synthetic fixtures and no dev routes", async () => {
     const distDir = path.resolve(process.cwd(), "dist/assets");
     expect(fs.existsSync(distDir)).toBe(true);
 

@@ -2,10 +2,30 @@
 
 > **Hackathon:** Embedded SF (CraftifAI Physical AI) | **Track:** Track A: PipeGen | **Bonus Target:** Edge Optimization
 
-**Submission Date:** 2026-10-18 21:27:15 UTC  
+**Submission Date:** 2026-10-19 09:43:47 UTC  
 **Lead Engineer:** Dibya Bhusal  
 **Software Implementation Status:** **15/15 Core Software Deliverables Verified**  
 **Edge Hardware Verification:** **0/4 Hardware Artifacts Live** (Hardware profiling runbook in `docs/RUNBOOK.md`)
+
+---
+
+## Hackathon Submission Form Fields
+
+- **Project Description**: SiteSentinel is an edge-first AI safety sentinel that ingests perception streams from a PipeGen-compiled DeepStream and TensorRT pipeline via MQTT, applying real-time zone intrusion monitoring, anatomical PPE compliance verification, privacy-preserving face redaction, and cryptographic audit logging.
+- **Track**: Track A: PipeGen
+- **Pipeline Inputs**: RTSP video streams, USB cameras, or pre-recorded video files from industrial site cameras.
+- **Pipeline Tasks**: Object detection (person, hard hat, safety vest, face), multi-object tracking, automated face blurring, and safety rule evaluation.
+- **Models**: Multi-class PPE detector and face detector for privacy redaction. Baseline CPU model: YOLOv8n ONNX; Target GPU model: PipeGen YOLOv8s TensorRT engine (Status: PENDING hardware run).
+- **Precision**: Baseline: FP32 on CPU. Target PipeGen deployment: FP16 and INT8 entropy-calibrated engines (Status: PENDING hardware run).
+- **Outputs**: MQTT alert topic (`sentinel/incidents`), append-only tamper-evident audit ledger (`incidents.jsonl`), redacted evidence video clips, and web control room dashboard.
+- **Bonuses Claimed**: None at software freeze (Target: Edge Optimization; requires hardware profiling and INT8 verification, currently PENDING).
+- **Repository Link**: [GitHub Repository](https://github.com/Dibya81/CraftifAIHackathon_CRA004)
+- **Evidence Links**:
+  - Verification Ledger: [evidence/ledger.yaml](evidence/ledger.yaml)
+  - Judge Report: [JUDGE_REPORT.md](JUDGE_REPORT.md)
+  - Hardware Runbook: [docs/RUNBOOK.md](docs/RUNBOOK.md)
+  - Privacy Audit Tool: [tools/privacy_audit.py](tools/privacy_audit.py)
+  - Test Artifacts and Logs: [evidence/](evidence/)
 
 ---
 
@@ -133,8 +153,8 @@ In accordance with hackathon rules and the claims ledger (`evidence/ledger.yaml`
 | [FOUND] **Sample Incident Log (JSONL)** | Actionable Output | `logs/incidents.jsonl` | **FOUND** | Verified (996 bytes) |
 | [FOUND] **Privacy-Blurred Evidence Clip** | Privacy & Evidence | `evidence/sample/sample-no-helmet-001.mp4` | **FOUND** | Verified (124,062 bytes) |
 | [FOUND] **Interactive React Dashboard** | Dashboard UI | `dashboard/src/App.tsx` | **FOUND** | Verified (17,897 bytes) |
-| [FOUND] **Demo Checklist & Judge Script** | Demo & Presentation | `demo/CHECKLIST.md` | **FOUND** | Verified (3,569 bytes) |
-| [FOUND] **One-Click Demo Runner** | Demo & Presentation | `scripts/run_demo.sh` | **FOUND** | Verified (5,747 bytes) |
+| [FOUND] **Demo Checklist & Judge Script** | Demo & Presentation | `demo/CHECKLIST.md` | **FOUND** | Verified (3,664 bytes) |
+| [FOUND] **One-Click Demo Runner** | Demo & Presentation | `scripts/run_demo.sh` | **FOUND** | Verified (5,721 bytes) |
 | [FOUND] **2-Minute Offline Backup Demo Video (Simulated)** | Demo & Presentation | `demo/backup_demo-simulated.mp4` | **FOUND** | Verified (3,909,858 bytes) |
 | [PENDING HW] **Pipeline IR Node Graph Screenshot** | PipeGen Integration | `evidence/pipegen/pipeline_ir.png` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 2 DeepStream graph screenshot) |
 | [PENDING HW] **TensorRT FP16 Speed Report (CLI)** | PipeGen Integration | `reports/speed_report_fp16.txt` | **PENDING** | PENDING HARDWARE RUN (Hardware step: Stage 3 TensorRT FP16 engine export) |

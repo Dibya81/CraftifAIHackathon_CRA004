@@ -1,6 +1,6 @@
 # SiteSentinel: Failure Modes & Root Cause Analysis
 
-- **Evaluation Run**: `2026-10-19T15:09:33.550447`
+- **Evaluation Run**: `2026-10-19T15:20:34.648489`
 - **Source Clip**: `data/simulated/site01-simulated.mp4`
 - **Labels File**: `data/simulated/site01-labels.json`
 - **Data Provenance**: `SIMULATED`

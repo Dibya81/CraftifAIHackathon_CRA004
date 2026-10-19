@@ -1,6 +1,6 @@
 # SiteSentinel
 
-<!-- CI badge goes here once a workflow exists -->
+[![CI](https://github.com/Dibya81/SiteSentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Dibya81/SiteSentinel/actions/workflows/ci.yml)
 
 SiteSentinel is a construction-site safety monitoring system. It processes video feeds,
 evaluates spatial zone intrusions and PPE compliance, emits tamper-evident incident records,
@@ -17,7 +17,7 @@ Run `python tools/ledger.py summary` to see live counts.
 <!-- BEGIN GENERATED: STATUS_TABLE -->
 | Item | Status | Proof |
 |------|--------|-------|
-| Python test suite (101 tests) | MEASURED | [ledger: TC-COUNT](evidence/ledger.yaml) |
+| Python test suite (144 tests) | MEASURED | [ledger: TC-COUNT](evidence/ledger.yaml) |
 | Offline eval precision/recall/F1 | SIMULATED — simulator data only | [ledger: EVAL-PRECISION-SIM](evidence/ledger.yaml) |
 | Engine FPS (FP32 / FP16 / INT8) | PENDING — no hardware run | [ledger: ENGINE-FPS-*](evidence/ledger.yaml) |
 | INT8 speedup over FP16 | PENDING — no hardware run | [ledger: ENGINE-INT8-SPEEDUP](evidence/ledger.yaml) |
@@ -44,12 +44,23 @@ make judge
 
 ---
 
-## How to Verify
+## Verify in 5 Minutes
 
 ```bash
-python tools/ledger.py verify   # Recomputes hashes, fails on any missing source
-python tools/audit_claims.py    # Scans docs for banned phrases and un-ledgered metrics
-make judge                      # Runs lint + types + ledger + claims + tests
+# 1. Install Python and Node dependencies
+make install && npm --prefix dashboard install
+
+# 2. Run automated judge verification (lint, types, ledger, claims, tests, soak)
+make judge
+
+# 3. Verify claims ledger cryptographic provenance
+python tools/ledger.py verify
+
+# 4. Verify submission bonus proofs
+python tools/submission_check.py
+
+# 5. Run full dashboard end-to-end suite (Playwright + Axe-core accessibility)
+npm --prefix dashboard run test:e2e
 ```
 
 ---
@@ -91,9 +102,18 @@ SiteSentinel is built to consume the output of a 5-stage PipeGen compilation pip
 | 4 — Compiler/Quantizer | INT8 entropy-calibrated engine | PENDING |
 | 5 — Export Application | [pipegen/export/](pipegen/export/) | PENDING — currently empty |
 
-The system is designed so the rule engine, incident sink, evidence writer, and dashboard
-are fully independent of the PipeGen pipeline. A baseline ONNX detector (CPU) is available
-for development and evaluation while the PipeGen export is pending.
+### What PipeGen Does vs What We Add
+
+| Pipeline Concern | PipeGen Responsibility | SiteSentinel Responsibility |
+|---|---|---|
+| Video Decoding | HW-accelerated NVDEC / GStreamer | Fallback OpenCV relay |
+| Neural Inference | Compiled TensorRT engines (FP16 / INT8) | CPU ONNX Runtime baseline & calibration harnesses |
+| Object Tracking | DeepStream NvDCF / NvSORT | Tracker association & track-ID reconciler |
+| Privacy Filtering | Video stream face blurring | Hard `PrivacyViolationError` gate & audit scanner |
+| Safety Intelligence | N/A (unaware of site rules) | Multi-zone polygons, dwell timers, PPE state machines |
+| Storage & Audit | N/A | Fsync-safe append-only SHA-256 hash-chained JSONL |
+| Incident Dispatch | Raw MQTT detections | Debounced incident MQTT dispatch + REST + WebSockets |
+| Operations | N/A | Control room React dashboard, zone editor, booth runner |
 
 To ingest a real PipeGen export:
 ```bash
@@ -161,7 +181,7 @@ reports/
   simulated/           # Simulator-derived eval results (stamped SIMULATED)
 src/sentinel/          # Backend: rule engine, incident sink, API, adapters
 dashboard/             # React control room dashboard
-tests/                 # Pytest suite (101 tests, MEASURED)
+tests/                 # Pytest suite (MEASURED)
 tools/
   ledger.py            # Verify and summarize claims ledger
   audit_claims.py      # Scan docs for banned phrases / un-ledgered numbers
