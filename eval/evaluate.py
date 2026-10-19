@@ -341,7 +341,7 @@ def run_threshold_sweep(
     labels_path: Optional[str | Path] = None,
 ) -> List[Dict[str, Any]]:
     """Sweep rule debounce duration and PPE overlap thresholds to determine optimal operating point.
-    
+
     Refuses to execute against locked test split labels to maintain strict evaluation integrity.
     """
     if labels_path is not None:
@@ -611,6 +611,19 @@ def main() -> None:
     parser.add_argument(
         "--tolerance", type=float, default=1.0, help="Matching temporal tolerance (seconds)"
     )
+    parser.add_argument(
+        "--detector",
+        type=str,
+        default="auto",
+        choices=["auto", "sim", "baseline"],
+        help="Detection source: 'baseline' (CPU ONNX detector) or 'sim' (Synthetic simulator)",
+    )
+    parser.add_argument(
+        "--stamp",
+        type=str,
+        default=None,
+        help="Custom provenance stamp (e.g. 'BASELINE')",
+    )
     parser.add_argument("--sweep", action="store_true", help="Run threshold parameter sweep")
     parser.add_argument(
         "--out-dir", type=str, default="reports", help="Output directory for reports"
@@ -619,7 +632,9 @@ def main() -> None:
 
     # Determine provenance
     labels_path = Path(args.labels)
-    if args.provenance == "AUTO":
+    if args.stamp:
+        provenance = args.stamp
+    elif args.provenance == "AUTO":
         if (
             "simulated" in str(labels_path).lower()
             or "simulated" in args.clip.lower()
@@ -675,24 +690,73 @@ def main() -> None:
     zone_mgr = ZoneManager(zones_cfg)
     rule_engine = RuleEngine(rules_cfg, zone_mgr)
 
-    # Generate or load evaluation frame detections
-    sim = Simulator(fps=25.0)
-    raw_frames: List[Tuple[FrameMeta, Any]] = []
-    current_ts = datetime.datetime.now(datetime.timezone.utc)
+    clip_p = Path(args.clip)
+    use_baseline = (args.detector == "baseline") or (
+        args.detector == "auto"
+        and clip_p.exists()
+        and clip_p.suffix.lower() in {".mp4", ".avi", ".mkv"}
+        and "simulated" not in str(clip_p).lower()
+    )
 
-    for scenario_name, dur in [
-        ("no_helmet", 5.0),
-        ("restricted_entry", 6.0),
-        ("danger_dwell", 8.0),
-    ]:
-        scenario_frames = sim.generate_scenario(scenario_name, duration_s=dur, start_ts=current_ts)
-        raw_frames.extend(scenario_frames)
-        current_ts = current_ts + datetime.timedelta(seconds=dur)
+    cached_frames: Dict[int, Any] = {}
+    fps_val = 25.0
+
+    if use_baseline:
+        import cv2
+
+        from sentinel.adapters.baseline_detector import BaselineONNXDetector
+
+        detector = BaselineONNXDetector()
+        if not detector.is_ready:
+            print(
+                "ERROR: Baseline ONNX detector weights not found. Run scripts/fetch_baseline_model.sh first.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        cap = cv2.VideoCapture(str(clip_p))
+        if not cap.isOpened():
+            print(f"ERROR: Could not open video clip {clip_p}", file=sys.stderr)
+            sys.exit(1)
+
+        raw_frames: List[Tuple[FrameMeta, Any]] = []
+        fps_val = float(cap.get(cv2.CAP_PROP_FPS) or 25.0)
+        frame_idx = 0
+
+        print(f"Running baseline ONNX detector on {clip_p} (FPS: {fps_val:.1f})...")
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                break
+            ts = frame_idx / fps_val
+            meta = detector.detect(frame, frame_id=frame_idx, timestamp=ts)
+            raw_frames.append((meta, None))
+            if frame_idx % 5 == 0 and len(cached_frames) < 100:
+                cached_frames[frame_idx] = frame.copy()
+            frame_idx += 1
+        cap.release()
+        total_dur_s = len(raw_frames) / fps_val if fps_val > 0 else 0.0
+        print(f"Processed {len(raw_frames)} frames through baseline detector.")
+        if not args.stamp:
+            provenance = "BASELINE (real footage, non-PipeGen detector)"
+    else:
+        # Generate or load evaluation frame detections from simulator
+        sim = Simulator(fps=25.0)
+        raw_frames = []
+        current_ts = datetime.datetime.now(datetime.timezone.utc)
+
+        for scenario_name, dur in [
+            ("no_helmet", 5.0),
+            ("restricted_entry", 6.0),
+            ("danger_dwell", 8.0),
+        ]:
+            scenario_frames = sim.generate_scenario(scenario_name, duration_s=dur, start_ts=current_ts)
+            raw_frames.extend(scenario_frames)
+            current_ts = current_ts + datetime.timedelta(seconds=dur)
+        total_dur_s = len(raw_frames) / 25.0
 
     # Replay pipeline
     incidents = run_pipeline_replay(iter(raw_frames), rule_engine)
-
-    total_dur_s = len(raw_frames) / 25.0
 
     (
         per_rule,
@@ -709,6 +773,30 @@ def main() -> None:
     ) = match_incidents_to_ground_truth_detailed(
         incidents, ground_truth, tolerance_s=args.tolerance, total_duration_s=total_dur_s
     )
+
+    # Generate blurred thumbnails for misses and false alarms for privacy compliance
+    thumb_dir = Path(args.out_dir) / "eval_thumbnails"
+    if cached_frames and (misses or false_alarms):
+        thumb_dir.mkdir(parents=True, exist_ok=True)
+        import cv2
+
+        for idx, miss in enumerate(misses[:10]):
+            target_f = int(miss["start_s"] * fps_val)
+            nearest_f = min(cached_frames.keys(), key=lambda k: abs(k - target_f))
+            thumb_img = cv2.resize(cached_frames[nearest_f], (320, 180))
+            blurred_thumb = cv2.GaussianBlur(thumb_img, (31, 31), 15.0)
+            thumb_name = f"miss_{idx+1}_frame_{nearest_f}.jpg"
+            cv2.imwrite(str(thumb_dir / thumb_name), blurred_thumb, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            miss["thumbnail"] = f"reports/eval_thumbnails/{thumb_name}"
+
+        for idx, fa in enumerate(false_alarms[:10]):
+            target_f = int(fa.get("timestamp_rel_s", 0.0) * fps_val)
+            nearest_f = min(cached_frames.keys(), key=lambda k: abs(k - target_f))
+            thumb_img = cv2.resize(cached_frames[nearest_f], (320, 180))
+            blurred_thumb = cv2.GaussianBlur(thumb_img, (31, 31), 15.0)
+            thumb_name = f"fa_{idx+1}_frame_{nearest_f}.jpg"
+            cv2.imwrite(str(thumb_dir / thumb_name), blurred_thumb, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            fa["thumbnail"] = f"reports/eval_thumbnails/{thumb_name}"
 
     sweep_results = None
     if args.sweep:

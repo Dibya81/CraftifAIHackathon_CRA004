@@ -3,7 +3,7 @@ RUFF ?= $(shell if [ -f .venv/bin/ruff ]; then echo .venv/bin/ruff; else echo ru
 MYPY ?= $(shell if [ -f .venv/bin/mypy ]; then echo .venv/bin/mypy; else echo mypy; fi)
 PYTEST ?= $(shell if [ -f .venv/bin/pytest ]; then echo .venv/bin/pytest; else echo pytest; fi)
 
-.PHONY: all install test lint format sim demo eval report test-privacy submission judge verify-hardware clean
+.PHONY: all install test lint format sim demo eval real-eval report test-privacy privacy-audit submission judge verify-hardware clean
 
 all: lint test
 
@@ -39,11 +39,17 @@ demo:
 eval:
 	$(PYTHON) eval/evaluate.py --clip data/test_clips/site01.mp4 --labels data/labelled/site01.json
 
+real-eval:
+	$(PYTHON) eval/evaluate.py --clip $(or $(CLIP),tests/fixtures/real_sample_clip.mp4) --labels $(or $(LABELS),data/labelled/site01.json) --detector baseline --stamp BASELINE
+
 report:
 	$(PYTHON) tools/engine_report.py
 
 test-privacy:
 	$(PYTHON) tools/privacy_audit.py --dir evidence
+
+privacy-audit:
+	$(PYTHON) tools/privacy_audit.py --dir $(or $(DIR),evidence)
 
 submission:
 	$(PYTHON) tools/make_submission.py

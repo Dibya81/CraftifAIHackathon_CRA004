@@ -34,4 +34,6 @@ dashboard/dist/
 .agents/
 reports/eval_20*.json
 reports/eval_20*.md
+reports/eval_thumbnails/
+data/dataset/
 
