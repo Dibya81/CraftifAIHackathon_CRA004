@@ -6,6 +6,7 @@ data/raw/*
 data/labelled/*
 !data/labelled/*.json
 data/test_clips/*
+!data/test_clips/site01.mp4
 models/engines/*
 models/onnx/*
 models/baseline/*.onnx
