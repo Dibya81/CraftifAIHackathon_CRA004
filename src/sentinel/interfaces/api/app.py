@@ -89,8 +89,8 @@ def create_app(
     app.state.mjpeg_relay = relay
     app.state.relay = relay
     app.state.ws_hub = ws_hub
-    app.state.mode = "SIMULATED"
-    app.state.replay_file = None
+    app.state.mode = os.environ.get("SENTINEL_MODE", "SIMULATED")
+    app.state.replay_file = os.environ.get("SENTINEL_REPLAY_FILE", None)
 
     # Global CORS
     app.add_middleware(
@@ -158,6 +158,8 @@ def create_app(
             gpu_util=gpu_info.get("util"),
             gpu_power_w=gpu_info.get("power_w"),
             ts=now_ts,
+            mode=getattr(app.state, "mode", "SIMULATED"),
+            replay_file=getattr(app.state, "replay_file", None),
         )
 
     @router.get("/ready", response_model=ReadyResponse)

@@ -36,4 +36,6 @@ reports/eval_20*.json
 reports/eval_20*.md
 reports/eval_thumbnails/
 data/dataset/
+offline/
+.booth_day_state.json
 

@@ -76,6 +76,43 @@ def doctor(
                 typer.echo(f"  - {r}")
         return
 
+    if hardware:
+        from sentinel.interfaces.cli.doctor import run_hardware_diagnostics
+
+        typer.echo("Running Comprehensive Edge Hardware Diagnostics...\n")
+        report = run_hardware_diagnostics()
+        for check in report["checks"]:
+            st = check["status"]
+            if st == "PASS":
+                typer.secho(f"  [PASS] {check['name']}: {check['detail']}", fg=typer.colors.GREEN)
+            elif st == "SKIPPED":
+                typer.secho(f"  [SKIP] {check['name']}: {check['detail']}", fg=typer.colors.BLUE)
+            elif st == "WARNING":
+                typer.secho(f"  [WARN] {check['name']}: {check['detail']}", fg=typer.colors.YELLOW)
+                if check.get("fix"):
+                    typer.echo(f"         Recommendation: {check['fix']}")
+            else:  # BLOCKER
+                typer.secho(f"  [BLOCKER] {check['name']}: {check['detail']}", fg=typer.colors.RED, bold=True)
+                if check.get("fix"):
+                    typer.echo(f"            Recommendation: {check['fix']}")
+
+        typer.echo("")
+        if report["blockers"]:
+            typer.secho(
+                f"FAILED: Found {len(report['blockers'])} hardware blocker(s): {', '.join(report['blockers'])}",
+                fg=typer.colors.RED,
+                bold=True,
+            )
+            raise typer.Exit(code=1)
+        elif report["warnings"]:
+            typer.secho(
+                f"PASSED with {len(report['warnings'])} warning(s). Edge hardware operational for execution.",
+                fg=typer.colors.YELLOW,
+            )
+        else:
+            typer.secho("PASSED: All edge hardware checks verified.", fg=typer.colors.GREEN, bold=True)
+        return
+
     typer.echo("Running SiteSentinel System Diagnostics...\n")
     report = run_diagnostics()
 
@@ -535,6 +572,32 @@ def verify_log(
         fg=typer.colors.GREEN,
         bold=True,
     )
+
+
+@app.command()
+def booth(
+    step: Optional[int] = typer.Option(
+        None, "--step", "-s", help="Run only a specific step index (1-10)"
+    ),
+    reset: bool = typer.Option(
+        False, "--reset", help="Reset booth day state file before running"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Preview step checklist and budget without executing commands"
+    ),
+):
+    """Interactive, resumable step-by-step booth day execution runner (scripts/booth_day.sh)."""
+    import subprocess
+    cmd = ["bash", "scripts/booth_day.sh"]
+    if reset:
+        cmd.append("--reset")
+    elif step is not None:
+        cmd.extend(["--step", str(step)])
+    if dry_run:
+        cmd.append("--dry-run")
+
+    res = subprocess.run(cmd)
+    raise typer.Exit(code=res.returncode)
 
 
 if __name__ == "__main__":

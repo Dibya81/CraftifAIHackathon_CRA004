@@ -45,6 +45,8 @@ class HealthResponse(BaseModel):
     gpu_util: Optional[float] = None
     gpu_power_w: Optional[float] = None
     ts: float
+    mode: Optional[str] = "SIMULATED"
+    replay_file: Optional[str] = None
 
 
 class ReadyResponse(BaseModel):

@@ -183,3 +183,146 @@ This runbook defines the exact numbered checklist with checkboxes for human team
   make judge
   ```
 - [ ] **Expected Output**: 0 violations, all documentation clean, unconditional PASS.
+
+---
+
+## Failure Playbook: Top 10 Hardware & Booth-Day Failures
+
+When running live demonstrations or hardware benchmarks under time pressure, refer to this prioritized playbook. Every failure includes the immediate diagnosis command and exact resolution.
+
+### 1. No X11 Session / Headless DISPLAY Crash
+- **Symptom**: DeepStream or GUI fails with `cannot open display: :0` or Gtk initialization error.
+- **Diagnosis Command**:
+  ```bash
+  echo "DISPLAY: $DISPLAY"; ls -la /tmp/.X11-unix/
+  ```
+- **Exact Fix**:
+  Run within a virtual X11 framebuffer:
+  ```bash
+  sudo apt-get install -y xvfb
+  xvfb-run -s "-screen 0 1920x1080x24" python -m sentinel.interfaces.cli.main run
+  ```
+
+### 2. Camera Index Wrong or `/dev/video0` Missing
+- **Symptom**: `Failed to open camera /dev/video0` or video capture error.
+- **Diagnosis Command**:
+  ```bash
+  v4l2-ctl --list-devices
+  ls -l /dev/video*
+  ```
+- **Exact Fix**:
+  Identify the real camera index (e.g. `/dev/video2`) and update `config/sentinel.yaml` or grant video group permissions:
+  ```bash
+  sudo usermod -aG video $USER
+  sed -i 's|/dev/video0|/dev/video2|g' config/sentinel.yaml
+  ```
+  If camera hardware is completely unresponsive, fall back immediately to the replay demo:
+  ```bash
+  python -m sentinel.interfaces.cli.main run --file tests/fixtures/pipegen_real_capture.ndjson
+  ```
+
+### 3. MQTT Port 1883 Busy / Address Already in Use
+- **Symptom**: Mosquitto fails to start: `Error: Address already in use`.
+- **Diagnosis Command**:
+  ```bash
+  sudo lsof -i :1883
+  ```
+- **Exact Fix**:
+  Terminate the lingering broker process or container:
+  ```bash
+  sudo kill -9 $(sudo lsof -t -i :1883) || docker stop $(docker ps -q --filter ancestor=eclipse-mosquitto)
+  docker compose up -d mosquitto
+  ```
+
+### 4. TensorRT Engine Build Fails
+- **Symptom**: `trtexec` or PipeGen fails during ONNX-to-engine compilation with layer conversion or memory errors.
+- **Diagnosis Command**:
+  ```bash
+  trtexec --onnx=models/onnx/yolov8s.onnx --saveEngine=models/engines/test.engine --verbose
+  ```
+- **Exact Fix**:
+  Increase workspace memory allocation and force FP16 fallback if INT8 fails:
+  ```bash
+  trtexec --onnx=models/onnx/yolov8s.onnx --saveEngine=models/engines/model.engine --workspace=4096 --fp16
+  ```
+
+### 5. INT8 Calibration Crash / Calibration Dataset Missing
+- **Symptom**: PipeGen fails at quantization stage: `Calibration data not found or batch invalid`.
+- **Diagnosis Command**:
+  ```bash
+  python tools/validate_dataset.py --dataset-dir data/dataset
+  ```
+- **Exact Fix**:
+  Ensure calibration image directory is populated with at least 100 normalized images without test-set leakage:
+  ```bash
+  python tools/prepare_dataset.py --clip data/test_clips/sample_site.mp4 --out-dir data/dataset/calibration --num-frames 100
+  ```
+
+### 6. Wrong Class Names / Detector Class Mismatch
+- **Symptom**: Detections arrive on MQTT but incidents are never raised or class names show raw indices (`0`, `1`).
+- **Diagnosis Command**:
+  ```bash
+  python -m sentinel.interfaces.cli.main doctor --payload tests/fixtures/pipegen_sample.json
+  ```
+- **Exact Fix**:
+  Review the field mapping report printed by doctor, then update `config/sentinel.yaml`:
+  ```yaml
+  class_map:
+    0: "person"
+    1: "vest"
+    2: "no_vest"
+    3: "helmet"
+    4: "no_helmet"
+  ```
+
+### 7. Evidence Not Blurred / Face or License Plate Detected
+- **Symptom**: `make privacy-audit` exits with error: unblurred human features detected in `evidence/`.
+- **Diagnosis Command**:
+  ```bash
+  python tools/privacy_audit.py --dir evidence/ --strict
+  ```
+- **Exact Fix**:
+  Re-run the privacy redaction pass before presenting or promoting artifacts:
+  ```bash
+  python tools/privacy_redact.py --input-dir evidence/ --output-dir evidence/blurred --mode anonymize
+  ```
+
+### 8. GPU Out of Memory (CUDA OOM)
+- **Symptom**: CUDA error: `out of memory` when loading TensorRT engine or DeepStream pipeline.
+- **Diagnosis Command**:
+  ```bash
+  nvidia-smi --query-gpu=memory.total,memory.used,memory.free --format=csv
+  ```
+- **Exact Fix**:
+  Drop batch size to 1 in pipeline configuration, close any GUI browser tabs displaying WebGL, and restart the service:
+  ```bash
+  sudo systemctl restart nvargus-daemon
+  sed -i 's/batch_size: [0-9]*/batch_size: 1/g' config/sentinel.yaml
+  ```
+
+### 9. Power Cap / Thermal Throttling
+- **Symptom**: FPS drops from 30+ to 12 FPS; latency climbs past 80ms; GPU clocks throttle down.
+- **Diagnosis Command**:
+  ```bash
+  sudo tegrastats || nvidia-smi -q -d PERFORMANCE
+  ```
+- **Exact Fix**:
+  Set maximum performance power mode and pin hardware clocks:
+  ```bash
+  sudo nvpmodel -m 0
+  sudo jetson_clocks
+  ```
+
+### 10. Wrong PipeGen Version
+- **Symptom**: Export schema mismatch or unrecognized PipeGen command-line flags.
+- **Diagnosis Command**:
+  ```bash
+  pipegen --version
+  ```
+- **Exact Fix**:
+  Verify the required version from hackathon release notes and reinstall if necessary:
+  ```bash
+  pip install --upgrade pipegen-compiler==1.2.0
+  ./scripts/booth_day.sh --step 2
+  ```
+
